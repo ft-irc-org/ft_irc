@@ -1,8 +1,8 @@
 #include "Server.hpp"
 
-Server::Server(const ServerConfig& config) : config(config) {
+Server::Server(const ServerConfig& config): config(config) {
 	std::cout << "Server created" << std::endl;
-	std::cout << "Server " << config.getIp() << " : " << config.getPort() << std::endl;
+	std::cout << "Server port : " << config.getPort() << std::endl;
 
 	// Create a socket
 	if ((serverSocketFd = initSocket()) < 0) throw std::runtime_error(": Error while creating a socket!");
@@ -10,11 +10,6 @@ Server::Server(const ServerConfig& config) : config(config) {
 }
 
 Server::~Server() {}
-
-void Server::start() {
-	std::cout << "Server started" << std::endl;
-
-}
 
 int Server::initSocket() {
 	// socket openning
@@ -30,13 +25,12 @@ int Server::initSocket() {
 		throw std::runtime_error("Error while setting socket options!");
 
 	// non-blocking socket
-	if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) < 0) 
+	if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) < 0)
 		throw std::runtime_error("Error while setting socket to non-blocking!");
 	
 	// socket address setting
 	struct sockaddr_in serverAddress; // IPv4 인터넷 프로토콜용 소켓 주소 구조체
-	if (memset(&serverAddress, 0, sizeof(serverAddress))) // 구조체 변수 초기화
-		throw std::runtime_error("Error while initializing server address!");
+	memset(&serverAddress, 0, sizeof(serverAddress)); // 구조체 변수 초기화
 	serverAddress.sin_family = AF_INET; // 주소 체계(Address Family)를 설정
 	serverAddress.sin_addr.s_addr = INADDR_ANY; // IP 주소를 설정, INADDR_ANY : 모든 IP 주소를 의미, 모든 IP로부터의 연결을 허용
 	serverAddress.sin_port = htons(config.getPort()); // 포트 번호를 설정, htons : host to network short, network byte로 변환
@@ -56,8 +50,7 @@ int Server::initKqueue() {
 	kqueueFd = kqueue();
 	if (kqueueFd < 0) 
 		throw std::runtime_error("Error while creating kqueue!");
-	if (memset(events, 0, sizeof(events)) < 0)
-		throw std::runtime_error("Error while initializing events!");
+	memset(events, 0, sizeof(events));
 	return kqueueFd;
 }
 
@@ -71,7 +64,7 @@ int Server::initKqueue() {
 // };
 
 void Server::start() {
-	std::cout << "Server started at " << config.getIp() << " : " << config.getPort() << std::endl;
+	std::cout << "Server started at port : " << config.getPort() << std::endl;
 	struct kevent event;
 	// &event: 이벤트 정보를 저장할 구조체
 	// serverSocketFd: 감시할 파일 디스크립터(서버 소켓)
@@ -90,12 +83,33 @@ void Server::start() {
 			// server socket에 이벤트가 발생했을 때 (신규 클라이언트 접속)
 			if (events[i].ident == serverSocketFd)
 				acceptClient();
-			else
-				handleClientEvent(events[i].ident);
+			// else
+			// 	handleClientEvent(events[i].ident);
 		}
 	}
 }
 
 void Server::acceptClient(){
-	
+	struct sockaddr_in clientAddress;
+	socklen_t clientAddressSize = sizeof(clientAddress);
+	memset(&clientAddress, 0, sizeof(clientAddress));
+
+	// create client socket
+	int clientSocketFd = accept(serverSocketFd, (struct sockaddr*)&clientAddress, &clientAddressSize);
+	if (clientSocketFd < 0)
+		throw std::runtime_error("Error while accepting client!");
+
+	// set client socket to non-blocking
+	if (fcntl(clientSocketFd, F_SETFL, O_NONBLOCK) < 0)
+		throw std::runtime_error("Error while setting client socket to non-blocking!");
+
+	// add client socket to kqueue
+	struct kevent event;
+	EV_SET(&event, clientSocketFd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+	if (kevent(kqueueFd, &event, 1, NULL, 0, NULL) == -1)
+		throw std::runtime_error("Failed to add client socket to kqueue!");
+
+	Client newClient(clientSocketFd, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
+	clients[clientSocketFd] = &newClient;
+	std::cout << "New client connected : " << newClient.getIp() << ":" << newClient.getPort() << std::endl;
 }

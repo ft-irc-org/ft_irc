@@ -11,6 +11,8 @@
 #include <sys/event.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #include "ServerConfig.hpp"
 #include "Client.hpp"
