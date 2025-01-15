@@ -15,7 +15,7 @@
 #include <unistd.h>
 
 #include "ServerConfig.hpp"
-#include "Client.hpp"
+#include "../client/Client.hpp"
 
 # define MAX_CLIENTS 10
 
@@ -27,7 +27,7 @@ class Server {
 		void start();
 
 	private:
-		int	serverSocketFd;
+		uintptr_t	serverSocketFd;
 		int kqueueFd;
 		struct kevent events[MAX_CLIENTS];
 		std::map<int, Client*> clients;

@@ -1,5 +1,5 @@
-#include "Server.hpp"
-#include "ServerConfig.hpp"
+#include "./server/Server.hpp"
+#include "./server/ServerConfig.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <csignal>
@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     try {
         // Register signal handler for Ctrl+C
         signal(SIGINT, signalHandler);
-        
+
         // Check command line arguments
         if (argc != 2) {
             std::cerr << "Usage: " << argv[0] << " <port>" << std::endl;
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 
         // Create server configuration
         ServerConfig config(port, "password");
-        
+
         // Initialize server
         std::cout << "Initializing server on port " << port << "..." << std::endl;
         Server server(config);
