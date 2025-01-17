@@ -16,6 +16,8 @@
 
 #include "ServerConfig.hpp"
 #include "../client/Client.hpp"
+// #include "../client/Auth.hpp"
+// #include "../channel/Channel.hpp"
 
 # define MAX_CLIENTS 10
 
@@ -27,11 +29,15 @@ class Server {
 		void start();
 
 	private:
+		ServerConfig config;
+		// Auth auth;
+		
+		std::map<int, Client*> clients; // fd, client
+		// std::map<int, Channel*> channels; // fd, channel
+
 		uintptr_t	serverSocketFd;
 		int kqueueFd;
 		struct kevent events[MAX_CLIENTS];
-		std::map<int, Client*> clients;
-		ServerConfig config;
 
 		void acceptClient();
 		void handleClientEvent(int clientFd);

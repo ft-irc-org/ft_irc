@@ -14,10 +14,17 @@ class Client {
 		Client();
 		~Client();
 
+		void setConnected(bool status);
+		void setAuthentication(bool status);
+		void setNickname(const std::string& nickname);
+
 		int getSocketFd() const;
 		const std::string& getIp() const;
 		int getPort() const;
 		bool isConnected() const;
+		bool isAuthenticated() const;
+		const std::string& getNickname() const;
+
 		const std::string& getBuffer() const;
 
 	private:
@@ -26,11 +33,13 @@ class Client {
 		int port;
 		std::string nickname;
 		std::string username;
+		bool authenticated;
 		bool connected;
+
+		//unused
 		std::string buffer;
 
 		void setBuffer(const std::string& buf);
-		void setConnected(bool status);
 };
 
 #endif

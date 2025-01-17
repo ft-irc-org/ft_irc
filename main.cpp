@@ -16,20 +16,20 @@ int main(int argc, char *argv[]) {
         signal(SIGINT, signalHandler);
 
         // Check command line arguments
-        if (argc != 2) {
-            std::cerr << "Usage: " << argv[0] << " <port>" << std::endl;
+        if (argc != 3) {
+            std::cerr << "Usage: " << argv[0] << " <port> <password>" << std::endl;
             return 1;
         }
 
         // Parse port number
-        int port = std::atoi(argv[1]);
+        int port = std::stold(argv[1]);
         if (port <= 0 || port > 65535) {
             std::cerr << "Error: Invalid port number. Port must be between 1 and 65535." << std::endl;
             return 1;
         }
 
         // Create server configuration
-        ServerConfig config(port, "password");
+        ServerConfig config(port, argv[2]);
 
         // Initialize server
         std::cout << "Initializing server on port " << port << "..." << std::endl;

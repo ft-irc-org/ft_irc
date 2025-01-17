@@ -55,12 +55,12 @@ int Server::initKqueue() {
 }
 
 // struct kevent {
-//     uintptr_t ident;        /* identifier for this event */
-//     int16_t   filter;       /* filter for event */
-//     uint16_t  flags;        /* action flags for kqueue */
-//     uint32_t  fflags;       /* filter flag value */
-//     intptr_t  data;         /* filter data value */
-//     void      *udata;       /* opaque user data identifier */
+//	 uintptr_t ident;		/* identifier for this event */
+//	 int16_t   filter;	   /* filter for event */
+//	 uint16_t  flags;		/* action flags for kqueue */
+//	 uint32_t  fflags;	   /* filter flag value */
+//	 intptr_t  data;		 /* filter data value */
+//	 void	  *udata;	   /* opaque user data identifier */
 // };
 
 void Server::start() {
@@ -73,7 +73,7 @@ void Server::start() {
 	// 0, 0, NULL: 추가 설정 없음
 	EV_SET(&event, serverSocketFd, EVFILT_READ, EV_ADD, 0, 0, NULL); // server socket을 kqueue에 등록
 	if (kevent(kqueueFd, &event, 1, NULL, 0, NULL) == -1)
-        throw std::runtime_error("Failed to add server socket to kqueue");
+		throw std::runtime_error("Failed to add server socket to kqueue");
 
 	while (true) {
 		// event 대기
@@ -83,8 +83,8 @@ void Server::start() {
 			// server socket에 이벤트가 발생했을 때 (신규 클라이언트 접속)
 			if (events[i].ident == serverSocketFd)
 				acceptClient();
-			// else
-			// 	handleClientEvent(events[i].ident);
+			else
+				handleClientEvent(events[i].ident);
 		}
 	}
 }
@@ -109,7 +109,126 @@ void Server::acceptClient(){
 	if (kevent(kqueueFd, &event, 1, NULL, 0, NULL) == -1)
 		throw std::runtime_error("Failed to add client socket to kqueue!");
 
-	Client newClient(clientSocketFd, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
-	clients[clientSocketFd] = &newClient;
-	std::cout << "New client connected : " << newClient.getIp() << ":" << newClient.getPort() << std::endl;
+	clients[clientSocketFd] = new Client(clientSocketFd, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
+	std::cout << "New client connected : " << clients[clientSocketFd]->getIp() << ":" << clients[clientSocketFd]->getPort() << std::endl;
+
+	// send welcome message
+	std::string welcomeMessage = "Please authenticate using PASS command\r\n";
+	send(clientSocketFd, welcomeMessage.c_str(), welcomeMessage.size(), 0);
+}
+
+void Server::handleClientEvent(int clientSocketFd) {
+    char buffer[1024];
+    memset(buffer, 0, sizeof(buffer));
+    
+    ssize_t bytesRead = recv(clientSocketFd, buffer, sizeof(buffer) - 1, 0);
+    if (bytesRead > 0) {
+        Client* client = clients[clientSocketFd];
+        std::string receivedData(buffer, bytesRead);
+        
+        // Split messages by CRLF and process each command
+        size_t start = 0;
+        size_t end = 0;
+        
+        while ((end = receivedData.find("\r\n", start)) != std::string::npos) {
+            std::string command = receivedData.substr(start, end - start);
+            if (!command.empty()) {
+				std::cout << "processing command : " << command << std::endl;
+                // 인증 체크
+                if (!client->isAuthenticated() && command.find("PASS") == std::string::npos) {  // CAP 예외 제거, PASS만 허용
+    				std::string response = ":localhost 451 :You must first authenticate using PASS command\r\n";
+    				send(clientSocketFd, response.c_str(), response.size(), 0);
+				}
+				// PASS 처리
+                else if (command.find("PASS") != std::string::npos && !client->isAuthenticated()) {
+                    std::string password = command.substr(command.find("PASS") + 5);
+                    if (password == config.getPassword()) {
+                        client->setAuthentication(true);
+                        std::string response = ":localhost 001 :Password accepted\r\n";
+                        send(clientSocketFd, response.c_str(), response.size(), 0);
+                    } else {
+                        std::string response = ":localhost 464 :Password incorrect\r\n";
+                        send(clientSocketFd, response.c_str(), response.size(), 0);
+                    }
+                }
+                // NICK 처리
+                else if (command.find("NICK") != std::string::npos) {
+                    size_t space_pos = command.find(' ');
+                    if (space_pos != std::string::npos) {
+                        std::string nickname = command.substr(space_pos + 1);
+                        client->setNickname(nickname);
+                        // NICK 응답은 USER 명령어가 올 때까지 대기
+                    }
+                }
+                // USER 처리 (NICK이 설정된 경우에만)
+                else if (command.find("USER") != std::string::npos && !client->getNickname().empty()) {
+                    std::string nick = client->getNickname();
+                    std::string welcomeResponse = 
+                        ":localhost 001 " + nick + " :Welcome to the IRC network\r\n"
+                        ":localhost 002 " + nick + " :Your host is localhost, running version 1.0\r\n"
+                        ":localhost 003 " + nick + " :This server was created today\r\n"
+                        ":localhost 004 " + nick + " localhost 1.0 o o\r\n";
+                    send(clientSocketFd, welcomeResponse.c_str(), welcomeResponse.size(), 0);
+                }
+				else if (command.find("WHOIS") != std::string::npos) {
+					size_t space_pos = command.find(' ');
+					if (space_pos != std::string::npos) {
+						std::string nickname = command.substr(space_pos + 1);
+						std::string response = ":localhost 311 " + client->getNickname() + " " + nickname + " ~user localhost * :" + nickname + "\r\n";
+						send(clientSocketFd, response.c_str(), response.size(), 0);
+					}
+				}
+				else if (command.find("JOIN") != std::string::npos) {
+					size_t space_pos = command.find(' ');
+					if (space_pos != std::string::npos) {
+						std::string channel = command.substr(space_pos + 1);
+						std::string response = ":" + client->getNickname() + " JOIN :" + channel + "\r\n";
+						send(clientSocketFd, response.c_str(), response.size(), 0);
+					}
+				}
+                // PING 처리
+                else if (command.find("PING") != std::string::npos) {
+    				// PING 메시지의 전체 형식을 로그로 출력
+    				std::cout << "PING message received: [" << command << "]" << std::endl;
+    
+    				std::string response;
+    				size_t space_pos = command.find(' ');
+    				if (space_pos != std::string::npos) {
+    				    // PING 다음의 모든 텍스트를 서버 파라미터로 사용
+    				    std::string server = command.substr(space_pos + 1);
+    				    response = "PONG :" + server + "\r\n";
+    				} else {
+    				    // 파라미터가 없는 경우 기본값 사용
+    				    response = "PONG :localhost\r\n";
+    				}
+    
+				    // 응답 전송을 로그로 출력
+				    std::cout << "Sending PONG response: [" << response << "]" << std::endl;
+				    send(clientSocketFd, response.c_str(), response.size(), 0);
+				}
+                // MODE 처리
+                else if (command.find("MODE") != std::string::npos) {
+                    std::string response = ":localhost MODE " + client->getNickname() + " :+i\r\n";
+                    send(clientSocketFd, response.c_str(), response.size(), 0);
+                }
+                // 알 수 없는 명령어
+                else if (!command.empty()) {
+                    std::string response = ":localhost 421 " + client->getNickname() + " :Unknown command\r\n";
+                    send(clientSocketFd, response.c_str(), response.size(), 0);
+                }
+            }
+            start = end + 2; // Skip \r\n
+        }
+    } else if (bytesRead == 0) {
+        std::cout << "Client disconnected : " << clients[clientSocketFd]->getIp() << ":" 
+                 << clients[clientSocketFd]->getPort() << std::endl;
+        delete clients[clientSocketFd];
+        clients.erase(clientSocketFd);
+        close(clientSocketFd);
+    } else {
+        std::cerr << "Error receiving from client\n";
+        delete clients[clientSocketFd];
+        clients.erase(clientSocketFd);
+        close(clientSocketFd);
+    }
 }
