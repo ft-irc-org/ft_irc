@@ -10,7 +10,6 @@ class Message {
 	public:
 		Message(const std::string& rowMessage); // 생성자, 생성과 동시에 파싱할 수 있도록
 
-		// ex : PRIVMSG #channel :message :message2 ["#channel", :message :message2"] or ["#channel", "message", "message2"], ["#channel", ":message", ":message2"]
 		const std::string& getVerb() const; // 명령어 반환 (ex. PRIVMSG, JOIN, PING)
 		const std::vector<std::string>& getParams() const; // 파람 전체를 반환 (ex. ["#channel", "message"], ["localhost"], ["user1", "user2"])
 
@@ -21,7 +20,12 @@ class Message {
 	private:
 		std::string verb;
 		std::vector<std::string> params;
-
+		
+		// 원본: "/msg hi,hi2,hi3 test msg,test msg2"
+		// 서버 수신:
+		// "PRIVMSG hi :test msg,test msg2"     -> params = ["hi", "test msg,test msg2"]
+		// "PRIVMSG hi2 :test msg,test msg2"    -> params = ["hi2", "test msg,test msg2"]
+		// "PRIVMSG hi3 :test msg,test msg2"    -> params = ["hi3", "test msg,test msg2"]
 		void parse(const std::string& rowMessage);
 };
 
