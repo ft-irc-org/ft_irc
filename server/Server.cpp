@@ -112,9 +112,10 @@ void Server::acceptClient(){
 	clients[clientSocketFd] = new Client(clientSocketFd, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
 	std::cout << "New client connected : " << clients[clientSocketFd]->getIp() << ":" << clients[clientSocketFd]->getPort() << std::endl;
 
-	// send welcome message
+	// send authentication message
 	std::string welcomeMessage = "Please authenticate using PASS command\r\n";
-	send(clientSocketFd, welcomeMessage.c_str(), welcomeMessage.size(), 0);
+	std::string response = ":localhost 451 :You must first authenticate using PASS command\r\n";
+    send(clientSocketFd, response.c_str(), response.size(), 0);
 }
 
 void Server::handleClientEvent(int clientSocketFd) {
@@ -134,13 +135,7 @@ void Server::handleClientEvent(int clientSocketFd) {
             std::string command = receivedData.substr(start, end - start);
             if (!command.empty()) {
 				std::cout << "processing command : " << command << std::endl;
-                // 인증 체크
-                if (!client->isAuthenticated() && command.find("PASS") == std::string::npos) {  // CAP 예외 제거, PASS만 허용
-    				std::string response = ":localhost 451 :You must first authenticate using PASS command\r\n";
-    				send(clientSocketFd, response.c_str(), response.size(), 0);
-				}
-				// PASS 처리
-                else if (command.find("PASS") != std::string::npos && !client->isAuthenticated()) {
+                if (command.find("PASS") != std::string::npos && !client->isAuthenticated()) {
                     std::string password = command.substr(command.find("PASS") + 5);
                     if (password == config.getPassword()) {
                         client->setAuthentication(true);
@@ -157,6 +152,8 @@ void Server::handleClientEvent(int clientSocketFd) {
                     if (space_pos != std::string::npos) {
                         std::string nickname = command.substr(space_pos + 1);
                         client->setNickname(nickname);
+						std::string response = ":localhost 001 " + nickname + " :Welcome to the IRC network\r\n";
+						send(clientSocketFd, response.c_str(), response.size(), 0);
                         // NICK 응답은 USER 명령어가 올 때까지 대기
                     }
                 }

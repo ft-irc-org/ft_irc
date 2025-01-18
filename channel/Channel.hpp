@@ -4,6 +4,8 @@
 # include <iostream>
 # include <string>
 # include <exception>
+# include <map>
+# include "../client/Client.hpp"
 # include "../client/Auth.hpp"
 
 class Channel {
@@ -27,14 +29,19 @@ class Channel {
 		void setChannelMode(unsigned int channelMode);
 		void setUserCount(unsigned int userCount);
 
+		void addMember(const Client& client);
+		void removeMember(const Client& client);
+
+		void broadcast(const std::string& message, const Client& sender);
+
 	private:
 		int channelFd;
 		std::string channelName;
 		std::string topic;
 		unsigned int channelMode;
-		unsigned int userCount;
 
-		
+		std::map<int, Client> users;
+		std::map<int, Channel> channels;
 };
 
 #endif
