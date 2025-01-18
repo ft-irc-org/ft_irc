@@ -8,7 +8,6 @@
 
 class Auth {
 	public:
-
 		typedef enum Permission {
 			NONE = 0,
 			OP = 1 << 0,		       // 채널 운영자 (MODE +o)
@@ -36,6 +35,9 @@ class Auth {
 		void removeUser(const std::string& userNickname);
 		void removeUserFromChannel(const std::string& userNickname, const std::string& channelName);
 
+		// 닉네임 변경
+		void updateNickname(const std::string& oldNickname, const std::string& newNickname);
+
 	private:
 		typedef struct AuthPK {
 			std::string userNickname;
@@ -45,6 +47,7 @@ class Auth {
 		} AuthPK;
 		
 		std::map<AuthPK, unsigned int> authMap;
+
 };
 
 #endif

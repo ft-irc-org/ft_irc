@@ -17,7 +17,8 @@
 #include "ServerConfig.hpp"
 #include "../client/Client.hpp"
 // #include "../client/Auth.hpp"
-// #include "../channel/Channel.hpp"
+#include "../channel/Channel.hpp"
+#include "../command/Dispatcher.hpp"
 
 # define MAX_CLIENTS 10
 
@@ -30,9 +31,12 @@ class Server {
 
 	private:
 		ServerConfig config;
-		// Auth auth;
-		
+		Dispatcher dispatcher;
+		std::map<std::string, Channel*> channels; // channelName, channel
 		std::map<int, Client*> clients; // fd, client
+
+		
+		// std::map<int, Client*> clients; // fd, client
 		// std::map<int, Channel*> channels; // fd, channel
 
 		uintptr_t	serverSocketFd;

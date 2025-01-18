@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(const ServerConfig& config): config(config) {
+Server::Server(const ServerConfig& config): config(config), dispatcher(channels, clients) {
 	std::cout << "Server created" << std::endl;
 	std::cout << "Server port : " << config.getPort() << std::endl;
 

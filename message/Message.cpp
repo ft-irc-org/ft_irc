@@ -21,11 +21,33 @@ size_t Message::getParamCount() const {
 }
 
 void Message::parse(const std::string& rowMessage) {
-	// TODO: 파싱 구현
-	// 이런 메시지가 있으면
-	// PRIVMSG #channel :Hello : World :: This is a message
+	size_t pos = 0;
+	size_t prev = 0;
+	std::string token;
+	bool isVerb = true;
+	bool isParam = false;
+	bool isTrailing = false;
 
-	// 올바른 파싱 방식
-	// Message.verb = "PRIVMSG"
-	// Message.params = ["#channel", "Hello : World :: This is a message"] <- vector<string>
+	while ((pos = rowMessage.find(" ", prev)) != std::string::npos) {
+		token = rowMessage.substr(prev, pos - prev);
+		if (isVerb) {
+			verb = token;
+			isVerb = false;
+			isParam = true;
+		} else if (isParam) {
+			if (token[0] == ':') {
+				params.push_back(rowMessage.substr(prev + 1));
+				isParam = false;
+				isTrailing = true;
+			} else {
+				params.push_back(token);
+			}
+		} else if (isTrailing) {
+			params.back() += " " + token;
+		}
+		prev = pos + 1;
+	}
+	if (prev < rowMessage.length()) {
+		params.push_back(rowMessage.substr(prev));
+	}
 }

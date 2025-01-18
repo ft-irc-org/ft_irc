@@ -90,3 +90,18 @@ void Auth::removeUserFromChannel(const std::string& userNickname, const std::str
 		
 	authMap.erase(pk);
 }
+
+void Auth::updateNickname(const std::string& oldNickname, const std::string& newNickname) {
+	std::map<AuthPK, unsigned int>::iterator it = authMap.begin();
+	while (it != authMap.end()) {
+		if (it->first.userNickname == oldNickname) {
+			AuthPK pk;
+			pk.userNickname = newNickname;
+			pk.channelName = it->first.channelName;
+			authMap[pk] = it->second;
+			authMap.erase(it++);
+		} else {
+			++it;
+		}
+	}
+}
