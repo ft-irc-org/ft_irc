@@ -20,12 +20,15 @@ class Message {
 	private:
 		std::string verb;
 		std::vector<std::string> params;
-		
-		// 원본: "/msg hi,hi2,hi3 test msg,test msg2"
-		// 서버 수신:
-		// "PRIVMSG hi :test msg,test msg2"     -> params = ["hi", "test msg,test msg2"]
-		// "PRIVMSG hi2 :test msg,test msg2"    -> params = ["hi2", "test msg,test msg2"]
-		// "PRIVMSG hi3 :test msg,test msg2"    -> params = ["hi3", "test msg,test msg2"]
+
+		// 예제 1
+		// 서버 수신: "PRIVMSG hi :test msg,test msg2"     -> params = ["hi", "test msg,test msg2"]
+
+		// 예제 2
+		// 서버 수신: "PRIVMSG hi :test :msg,test :msg2"     -> params = ["hi", "test :msg,test :msg2"]
+
+		// 예제 3
+		// 서버 수신: "PRIVMSG hi ::test :msg,test :msg2"     -> params = ["hi", ":test :msg,test :msg2"]
 		void parse(const std::string& rowMessage);
 };
 
