@@ -1,13 +1,16 @@
 #ifndef QUIT_HPP
 # define QUIT_HPP
 
-#include "CommandHandler.hpp"
+#include <sys/socket.h>
+#include <unistd.h>
+
+# include "CommandHandler.hpp"
 
 class Quit : public CommandHandler {
 	public:
 		Quit();
 		~Quit();
-		void execute(Client* client, const Message& command, std::map<std::string, Channel*>& channels);
+		void execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth);
 };
 
 #endif

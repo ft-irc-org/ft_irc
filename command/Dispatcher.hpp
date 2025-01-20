@@ -16,6 +16,7 @@
 # include "Privmsg.hpp"
 # include "Nick.hpp"
 # include "Ping.hpp"
+# include "Pong.hpp"
 # include "Mode.hpp"
 # include "Quit.hpp"
 

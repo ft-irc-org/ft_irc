@@ -3,11 +3,12 @@
 Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients) : channels(channels), clients(clients) {
 	registerHandler("JOIN", new Join());
 	registerHandler("KICK", new Kick());
-	registerHandler("PART", new Part());
+	// registerHandler("PART", new Part());
 	registerHandler("PRIVMSG", new Privmsg());
 	registerHandler("NICK", new Nick());
 	registerHandler("PING", new Ping());
-	// registerHandler("MODE", new Mode());
+	registerHandler("PONG", new Pong());
+	registerHandler("MODE", new Mode());
 	registerHandler("QUIT", new Quit());
 }
 

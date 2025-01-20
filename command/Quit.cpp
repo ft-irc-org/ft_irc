@@ -6,8 +6,14 @@ Quit::Quit() {
 Quit::~Quit() {
 }
 
-void Quit::execute(Client* client, const Message& command, std::map<std::string, Channel*>& channels) {
-	std::string response = ":" + client->getNickname() + " QUIT\r\n";
-	send(client->getSocketFd(), response.c_str(), response.size(), 0);
-	client->setConnected(false);
+void Quit::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth) {
+	std::string response = ":" + sender->getNickname() + " QUIT\r\n";
+	send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+	sender->setConnected(false);
+	close(sender->getSocketFd());
+	clients.erase(sender->getSocketFd());
+	auth.removeUser(sender->getNickname());
+	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
+		it->second->removeMember(*sender);
+	}
 }

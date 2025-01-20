@@ -6,10 +6,10 @@ Privmsg::Privmsg() {
 Privmsg::~Privmsg() {
 }
 
-void Privmsg::execute(Client* client, const Message& command, std::map<std::string, Channel*>& channels) {
+void Privmsg::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth){
 	if (command.getParamCount() < 2) {
-		std::string response = ":localhost 461 " + client->getNickname() + " PRIVMSG :Not enough parameters\r\n";
-		send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		std::string response = ":localhost 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters\r\n";
+		send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 		return;
 	}
 
@@ -19,15 +19,31 @@ void Privmsg::execute(Client* client, const Message& command, std::map<std::stri
 	if (target[0] == '#') {
 		std::map<std::string, Channel*>::iterator it = channels.find(target);
 		if (it == channels.end()) {
-			std::string response = ":localhost 403 " + client->getNickname() + " " + target + " :No such channel\r\n";
-			send(client->getSocketFd(), response.c_str(), response.size(), 0);
+			std::string response = ":localhost 403 " + sender->getNickname() + " " + target + " :No such channel\r\n";
+			send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 			return;
 		}
 
-		Channel* channel = channels[target];
-		channel->broadcast(message, *client);
+		Channel* channel = it->second;
+		if (!auth.hasPermission(sender->getNickname(), target, Auth::CHANNEL_MODE)) {
+			std::string response = ":localhost 482 " + sender->getNickname() + " " + target + " :You're not channel operator\r\n";
+			send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+			return;
+		}
+
+		std::string response = ":" + sender->getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
+		channel->broadcast(response, *sender);
 	} else {
-		std::string response = ":" + client->getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
-		send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+			if (it->first == sender->getSocketFd()) {
+				continue;
+			}
+
+			if (it->second->getNickname() == target) {
+				std::string response = ":" + sender->getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
+				send(it->first, response.c_str(), response.size(), 0);
+				return;
+			}
+		}
 	}
 }
