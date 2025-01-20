@@ -6,6 +6,8 @@
 # include <map>
 # include <exception>
 
+# include "../server/ServerConfig.hpp"
+
 class Auth {
 	public:
 		typedef enum Permission {
@@ -18,6 +20,7 @@ class Auth {
 		} Permission;
 
 		Auth();
+		Auth(const ServerConfig& config);
 		~Auth();
 
 		// 권한 확인
@@ -38,6 +41,10 @@ class Auth {
 		// 닉네임 변경
 		void updateNickname(const std::string& oldNickname, const std::string& newNickname);
 
+		// 서버 설정 가져오기
+		const ServerConfig& getConfig() const;
+		const std::string& getPassword() const;
+
 	private:
 		typedef struct AuthPK {
 			std::string userNickname;
@@ -47,6 +54,8 @@ class Auth {
 		} AuthPK;
 		
 		std::map<AuthPK, unsigned int> authMap;
+
+		ServerConfig config;
 
 };
 

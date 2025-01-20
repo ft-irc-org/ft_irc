@@ -67,11 +67,6 @@ void Nick::broadcastToChannels(const std::string& message, Client* sender, std::
 	}
 }
 
-void Nick::sendError(Client* client, const std::string& error) {
-	std::string response = ":localhost " + error + "\r\n";
-	send(client->getSocketFd(), response.c_str(), response.size(), 0);
-}
-
 bool Nick::isValidNickname(const std::string& nickname) const {
     if (nickname.empty() || nickname.length() > 9) {
         return false;

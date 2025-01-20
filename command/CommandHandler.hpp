@@ -11,8 +11,12 @@
 
 class CommandHandler {
 	public:
-		virtual ~CommandHandler() = 0;
+		virtual ~CommandHandler() {};
 		virtual void execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth) = 0;
+		void sendError(Client* client, const std::string& error) {
+			std::string response = ":localhost " + error + "\r\n";
+			send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		}
 };
 
 #endif

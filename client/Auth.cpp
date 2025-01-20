@@ -9,6 +9,10 @@ bool Auth::AuthPK::operator<(const AuthPK& pk) const {
 
 Auth::Auth() {}
 
+Auth::Auth(const ServerConfig& sc) {
+	config = sc;
+}
+
 Auth::~Auth() {}
 
 bool Auth::hasPermission(const std::string& userNickname, const std::string& channelName, int permissions) const {
@@ -104,4 +108,12 @@ void Auth::updateNickname(const std::string& oldNickname, const std::string& new
 			++it;
 		}
 	}
+}
+
+const ServerConfig& Auth::getConfig() const {
+	return config;
+}
+
+const std::string& Auth::getPassword() const {
+	return config.getPassword();
 }

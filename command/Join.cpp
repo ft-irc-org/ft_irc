@@ -76,7 +76,7 @@ void Join::execute(Client* sender, const Message& command,
     
     // 채널 참가
     channel->addMember(*sender);
-    std::string response = ":" + sender->getNickname() + " JOIN " + channelName + "\r\n";
+    std::string response = "* " + sender->getNickname() + " has joined " + channelName + "\r\n";
     channel->broadcast(response, *sender);
 	auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
 

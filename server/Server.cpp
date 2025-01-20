@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(const ServerConfig& config): config(config), dispatcher(channels, clients) {
+Server::Server(const ServerConfig &sc): config(sc), dispatcher(channels, clients, config) {
 	std::cout << "Server created" << std::endl;
 	std::cout << "Server port : " << config.getPort() << std::endl;
 
@@ -132,86 +132,30 @@ void Server::handleClientEvent(int clientSocketFd) {
         size_t end = 0;
         
         while ((end = receivedData.find("\r\n", start)) != std::string::npos) {
-            std::string command = receivedData.substr(start, end - start);
-            if (!command.empty()) {
-				std::cout << "processing command : " << command << std::endl;
-                if (command.find("PASS") != std::string::npos && !client->isAuthenticated()) {
-                    std::string password = command.substr(command.find("PASS") + 5);
-                    if (password == config.getPassword()) {
+            std::string commandStr = receivedData.substr(start, end - start);
+            if (!commandStr.empty()) {
+                std::cout << "Processing command: " << commandStr << std::endl;
+                
+                Message msg(commandStr);
+                if (!client->isAuthenticated() && msg.getVerb() == "PASS") {
+                    // PASS 명령어는 서버에서 직접 처리
+                    if (msg.getParamCount() < 1) {
+                        std::string response = ":localhost 461 PASS :Not enough parameters\r\n";
+                        send(clientSocketFd, response.c_str(), response.size(), 0);
+                    }
+                    else if (msg.getParam(0) == config.getPassword()) {
                         client->setAuthentication(true);
                         std::string response = ":localhost 001 :Password accepted\r\n";
                         send(clientSocketFd, response.c_str(), response.size(), 0);
-                    } else {
+                    }
+                    else {
                         std::string response = ":localhost 464 :Password incorrect\r\n";
                         send(clientSocketFd, response.c_str(), response.size(), 0);
                     }
                 }
-                // NICK 처리
-                else if (command.find("NICK") != std::string::npos) {
-                    size_t space_pos = command.find(' ');
-                    if (space_pos != std::string::npos) {
-                        std::string nickname = command.substr(space_pos + 1);
-                        client->setNickname(nickname);
-						std::string response = ":localhost 001 " + nickname + " :Welcome to the IRC network\r\n";
-						send(clientSocketFd, response.c_str(), response.size(), 0);
-                        // NICK 응답은 USER 명령어가 올 때까지 대기
-                    }
-                }
-                // USER 처리 (NICK이 설정된 경우에만)
-                else if (command.find("USER") != std::string::npos && !client->getNickname().empty()) {
-                    std::string nick = client->getNickname();
-                    std::string welcomeResponse = 
-                        ":localhost 001 " + nick + " :Welcome to the IRC network\r\n"
-                        ":localhost 002 " + nick + " :Your host is localhost, running version 1.0\r\n"
-                        ":localhost 003 " + nick + " :This server was created today\r\n"
-                        ":localhost 004 " + nick + " localhost 1.0 o o\r\n";
-                    send(clientSocketFd, welcomeResponse.c_str(), welcomeResponse.size(), 0);
-                }
-				else if (command.find("WHOIS") != std::string::npos) {
-					size_t space_pos = command.find(' ');
-					if (space_pos != std::string::npos) {
-						std::string nickname = command.substr(space_pos + 1);
-						std::string response = ":localhost 311 " + client->getNickname() + " " + nickname + " ~user localhost * :" + nickname + "\r\n";
-						send(clientSocketFd, response.c_str(), response.size(), 0);
-					}
-				}
-				else if (command.find("JOIN") != std::string::npos) {
-					size_t space_pos = command.find(' ');
-					if (space_pos != std::string::npos) {
-						std::string channel = command.substr(space_pos + 1);
-						std::string response = ":" + client->getNickname() + " JOIN :" + channel + "\r\n";
-						send(clientSocketFd, response.c_str(), response.size(), 0);
-					}
-				}
-                // PING 처리
-                else if (command.find("PING") != std::string::npos) {
-    				// PING 메시지의 전체 형식을 로그로 출력
-    				std::cout << "PING message received: [" << command << "]" << std::endl;
-    
-    				std::string response;
-    				size_t space_pos = command.find(' ');
-    				if (space_pos != std::string::npos) {
-    				    // PING 다음의 모든 텍스트를 서버 파라미터로 사용
-    				    std::string server = command.substr(space_pos + 1);
-    				    response = "PONG :" + server + "\r\n";
-    				} else {
-    				    // 파라미터가 없는 경우 기본값 사용
-    				    response = "PONG :localhost\r\n";
-    				}
-    
-				    // 응답 전송을 로그로 출력
-				    std::cout << "Sending PONG response: [" << response << "]" << std::endl;
-				    send(clientSocketFd, response.c_str(), response.size(), 0);
-				}
-                // MODE 처리
-                else if (command.find("MODE") != std::string::npos) {
-                    std::string response = ":localhost MODE " + client->getNickname() + " :+i\r\n";
-                    send(clientSocketFd, response.c_str(), response.size(), 0);
-                }
-                // 알 수 없는 명령어
-                else if (!command.empty()) {
-                    std::string response = ":localhost 421 " + client->getNickname() + " :Unknown command\r\n";
-                    send(clientSocketFd, response.c_str(), response.size(), 0);
+                else {
+                    // 나머지 모든 명령어는 dispatcher로 처리
+                    dispatcher.dispatch(client, msg);
                 }
             }
             start = end + 2; // Skip \r\n

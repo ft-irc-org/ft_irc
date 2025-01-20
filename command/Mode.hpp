@@ -16,7 +16,6 @@ class Mode : public CommandHandler {
 	void handleModeQuery(Client* sender, const std::string& target, std::map<std::string, Channel*>& channels);
 
 	std::string getModeString(Channel* channel);
-    void sendError(Client* client, const std::string& error);
 };
 
 #endif

@@ -9,9 +9,10 @@
 # include "../client/Auth.hpp"
 # include "../message/Message.hpp"
 # include "../channel/Channel.hpp"
+# include "../server/ServerConfig.hpp"
 
 # include "Join.hpp"
-# include "kick.hpp"
+# include "Kick.hpp"
 # include "Part.hpp"
 # include "Privmsg.hpp"
 # include "Nick.hpp"
@@ -19,10 +20,14 @@
 # include "Pong.hpp"
 # include "Mode.hpp"
 # include "Quit.hpp"
+# include "Pass.hpp"
+# include "Notice.hpp"
+# include "User.hpp"
+# include "Whois.hpp"
 
 class Dispatcher {
 	public:
-		Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients);
+		Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients, const ServerConfig& config);
 
 		~Dispatcher();
 

@@ -1,15 +1,21 @@
 #include "Dispatcher.hpp"
 
-Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients) : channels(channels), clients(clients) {
+Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients, const ServerConfig& config) : channels(channels), clients(clients) {
 	registerHandler("JOIN", new Join());
 	registerHandler("KICK", new Kick());
-	// registerHandler("PART", new Part());
-	registerHandler("PRIVMSG", new Privmsg());
+	registerHandler("MODE", new Mode());
 	registerHandler("NICK", new Nick());
+	registerHandler("NOTICE", new Notice());
+	registerHandler("PART", new Part());
+	registerHandler("PASS", new Pass());
 	registerHandler("PING", new Ping());
 	registerHandler("PONG", new Pong());
-	registerHandler("MODE", new Mode());
+	registerHandler("PRIVMSG", new Privmsg());
 	registerHandler("QUIT", new Quit());
+	registerHandler("USER", new User());
+	registerHandler("WHOIS", new Whois());
+
+	auth = Auth(config);
 }
 
 Dispatcher::~Dispatcher() {

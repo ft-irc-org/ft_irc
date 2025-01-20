@@ -10,6 +10,7 @@ void Mode::execute(Client* sender, const Message& command,
                   std::map<int, Client*> &clients, 
                   std::map<std::string, Channel*>& channels, 
                   Auth &auth) {
+	(void) clients;
     if (command.getParamCount() < 1) {
         return sendError(sender, "461 MODE :Not enough parameters");
     }
@@ -26,8 +27,6 @@ void Mode::execute(Client* sender, const Message& command,
 
     if (target[0] == '#' && (auth.hasPermission(sender->getNickname(), target, Auth::CHANNEL_MODE) || auth.isOperator(sender->getNickname(), target))) {
         handleChannelMode(sender, target, modes, param, channels, auth);
-    } else {
-        sendError(sender, "502 :Cant change mode for other users");
     }
 }
 
@@ -55,7 +54,7 @@ void Mode::handleChannelMode(Client* sender, const std::string& channelName, con
     Channel* channel = it->second;
 
     if (!auth.hasPermission(sender->getNickname(), channelName, Auth::CHANNEL_MODE)) {
-        return sendError(sender, "482 " + channelName + " :You're not channel operator");
+        return sendError(sender, "482 " + channelName + " :You're not channel operator :: MODE");
     }
 
     bool adding = true;
@@ -185,7 +184,3 @@ std::string Mode::getModeString(Channel* channel) {
 	return modeString;
 }
 
-void Mode::sendError(Client* client, const std::string& error) {
-	std::string response = ":localhost " + error + "\r\n";
-	send(client->getSocketFd(), response.c_str(), response.size(), 0);
-}

@@ -33,7 +33,7 @@ void Kick::execute(Client* sender, const Message& command, std::map<int, Client*
 
 	Channel* channel = channels[channelName];
 	if (!auth.isOperator(sender->getNickname(), channelName) || !auth.hasPermission(sender->getNickname(), channelName, Auth::KICK_POWER)) {
-		std::string response = ":localhost 482 " + sender->getNickname() + " " + channelName + " :You're not channel operator\r\n";
+		std::string response = ":localhost 482 " + sender->getNickname() + " " + channelName + " :You're not channel operator :: KICK\r\n";
 		send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 		return;
 	}

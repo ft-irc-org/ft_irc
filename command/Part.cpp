@@ -6,24 +6,28 @@ Part::Part() {
 Part::~Part() {
 }
 
-void Part::execute(Client* client, const Message& command, std::map<std::string, Channel*>& channels) {
+void Part::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth) {
+	(void) clients;
 	if (command.getParamCount() < 1) {
-		std::string response = ":localhost 461 " + client->getNickname() + " PART :Not enough parameters\r\n";
-		send(client->getSocketFd(), response.c_str(), response.size(), 0);
-		return;
+		return sendError(sender, "461 PART :Not enough parameters");
 	}
 
 	std::string channelName = command.getParam(0);
 	std::map<std::string, Channel*>::iterator it = channels.find(channelName);
 	if (it == channels.end()) {
-		std::string response = ":localhost 403 " + client->getNickname() + " " + channelName + " :No such channel\r\n";
-		send(client->getSocketFd(), response.c_str(), response.size(), 0);
-		return;
+		return sendError(sender, "403 " + channelName + " :No such channel");
 	}
 
-	Channel* channel = channels[channelName];
-	channel->removeMember(*client);
+	Channel* channel = it->second;
+	if (channel->getChannelMode() & Channel::OPERATOR_ONLY && !auth.isOperator(sender->getNickname(), channelName)) {
+		return sendError(sender, "482 " + channelName + " :You're not channel operator :: PART");
+	}
 
-	std::string response = ":" + client->getNickname() + " PART " + channelName + "\r\n";
-	send(client->getSocketFd(), response.c_str(), response.size(), 0);
+	channel->removeMember(*sender);
+	std::string response = ":" + sender->getNickname() + " PART " + channelName + "\r\n";
+	channel->broadcast(response, *sender);
+	if (channel->getUserCount() == 0) {
+		channels.erase(channelName);
+		delete channel;
+	}
 }
