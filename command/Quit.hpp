@@ -6,6 +6,7 @@
 
 # include "CommandHandler.hpp"
 
+// 방 나가는 명령어
 class Quit : public CommandHandler {
 	public:
 		Quit();
