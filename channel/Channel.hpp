@@ -12,11 +12,11 @@ class Channel {
 	public:
 		typedef enum ChannelMode {
 			INVITE_ONLY = 1 << 0,
-			OPERATOR_ONLY = 1 << 1,
-			NO_OUTSIDE = 1 << 2,
+			TOPIC_RESTRICTED = 1 << 1,
+			KEY_REQUIRED = 1 << 2,
 			PRIVATE = 1 << 3,
-			TOPIC_RESTRICTED = 1 << 4,
-			USER_LIMIT = 1 << 5,
+			USER_LIMIT = 1 << 4,
+			OPERATOR_PRIVILEGES = 1 << 5
 		} ChannelMode;
 
 		Channel(int channelFd, const std::string& channelName);
@@ -37,6 +37,8 @@ class Channel {
 		void setPassword(const std::string& password);
 		void setUserCount(unsigned int userCount);
 		void setUserLimit(unsigned int userLimit);
+
+		bool hasMode(unsigned int requestMode) const;
 
 		void addMember(const Client& client);
 		void removeMember(const Client& client);

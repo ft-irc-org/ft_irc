@@ -137,26 +137,7 @@ void Server::handleClientEvent(int clientSocketFd) {
                 std::cout << "Processing command: " << commandStr << std::endl;
                 
                 Message msg(commandStr);
-                if (!client->isAuthenticated() && msg.getVerb() == "PASS") {
-                    // PASS 명령어는 서버에서 직접 처리
-                    if (msg.getParamCount() < 1) {
-                        std::string response = ":localhost 461 PASS :Not enough parameters\r\n";
-                        send(clientSocketFd, response.c_str(), response.size(), 0);
-                    }
-                    else if (msg.getParam(0) == config.getPassword()) {
-                        client->setAuthentication(true);
-                        std::string response = ":localhost 001 :Password accepted\r\n";
-                        send(clientSocketFd, response.c_str(), response.size(), 0);
-                    }
-                    else {
-                        std::string response = ":localhost 464 :Password incorrect\r\n";
-                        send(clientSocketFd, response.c_str(), response.size(), 0);
-                    }
-                }
-                else {
-                    // 나머지 모든 명령어는 dispatcher로 처리
-                    dispatcher.dispatch(client, msg);
-                }
+                dispatcher.dispatch(client, msg);
             }
             start = end + 2; // Skip \r\n
         }

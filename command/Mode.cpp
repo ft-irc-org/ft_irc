@@ -172,11 +172,11 @@ std::string Mode::getModeString(Channel* channel) {
 	if (channel->getChannelMode() & Channel::INVITE_ONLY) {
 		modeString += "i";
 	}
-	if (channel->getChannelMode() & Channel::OPERATOR_ONLY) {
+	if (channel->getChannelMode() & Channel::OPERATOR_PRIVILEGES) {
 		modeString += "o";
 	}
-	if (channel->getChannelMode() & Channel::NO_OUTSIDE) {
-		modeString += "n";
+	if (channel->getChannelMode() & Channel::TOPIC_RESTRICTED) {
+		modeString += "t";
 	}
 	if (channel->getChannelMode() & Channel::PRIVATE) {
 		modeString += "p";

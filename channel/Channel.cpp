@@ -73,5 +73,9 @@ void Channel::broadcast(const std::string& message, const Client& sender){
 	}	
 }
 
+bool Channel::hasMode(unsigned int requestMode) const {
+	return (channelMode & requestMode) != 0;
+}
+
 void Channel::setPassword(const std::string& password) { this->password = password; }
 const std::string& Channel::getPassword() const { return password; }
