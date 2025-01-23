@@ -14,8 +14,8 @@ void Nick::execute(Client* sender, const Message& command, std::map<int, Client*
 	std::string newNickname = command.getParam(0);
 
 	// ignore if the new nickname is the same as the old one
-	std::cout << "sender->getNickname() : " << sender->getNickname() << std::endl;
-	std::cout << "newNickname : " << newNickname << std::endl;
+	// std::cout << "sender->getNickname() : " << sender->getNickname() << std::endl;
+	// std::cout << "newNickname : " << newNickname << std::endl;
 	if (sender->getNickname() == newNickname) {
         return;
     }

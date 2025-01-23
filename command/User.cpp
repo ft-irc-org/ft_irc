@@ -18,7 +18,7 @@ void User::execute(Client* sender, const Message& command, std::map<int, Client*
     if (sender->isUserAuthenticated()) {
         return sendError(sender, "462 " + sender->getNickname() + " :Already registered");
     }
-    std::cout << "nickname : " << sender->getNickname() << std::endl;
+    // std::cout << "nickname : " << sender->getNickname() << std::endl;
     std::string username = command.getParam(0);
     std::string realname = command.getParam(3);
 
@@ -26,7 +26,7 @@ void User::execute(Client* sender, const Message& command, std::map<int, Client*
     sender->setUserAuthenticated(true);
 
     if (!sender->getNickname().empty()) {
-        std::cout << "nickname : " << sender->getNickname() << std::endl;
+        // std::cout << "nickname : " << sender->getNickname() << std::endl;
         sender->setAuthentication(true);
         std::string welcome = ":localhost 001 " + sender->getNickname() + " :Welcome to IRC\r\n";
         send(sender->getSocketFd(), welcome.c_str(), welcome.size(), 0);

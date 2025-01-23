@@ -11,13 +11,13 @@ void Pass::execute(Client* sender, const Message& command, std::map<int, Client*
 	(void) clients;
 
 	if (command.getParamCount() < 1) {
-		std::cout << "command.getParamCount() < 1" << std::endl;
+		// std::cout << "command.getParamCount() < 1" << std::endl;
 		sendError(sender, "461 " + sender->getNickname() + " PASS :Not enough parameters");
 		return;
 	}
 
 	if (sender->isPassAuthenticated()) {
-		std::cout << "sender->isPassAuthenticated()" << std::endl;
+		// std::cout << "sender->isPassAuthenticated()" << std::endl;
 		sendError(sender, "462 " + sender->getNickname() + " :You may not reregister");
 		return;
 	}
