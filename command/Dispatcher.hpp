@@ -13,7 +13,6 @@
 
 # include "Join.hpp"
 # include "Kick.hpp"
-# include "Part.hpp"
 # include "Privmsg.hpp"
 # include "Nick.hpp"
 # include "Ping.hpp"
@@ -21,7 +20,6 @@
 # include "Mode.hpp"
 # include "Quit.hpp"
 # include "Pass.hpp"
-# include "Notice.hpp"
 # include "User.hpp"
 # include "Whois.hpp"
 

@@ -5,8 +5,6 @@ Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, 
 	registerHandler("KICK", new Kick());
 	registerHandler("MODE", new Mode());
 	registerHandler("NICK", new Nick());
-	registerHandler("NOTICE", new Notice());
-	registerHandler("PART", new Part());
 	registerHandler("PASS", new Pass());
 	registerHandler("PING", new Ping());
 	registerHandler("PONG", new Pong());

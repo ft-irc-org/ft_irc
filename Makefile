@@ -13,14 +13,12 @@ SRCS = main.cpp \
         ./command/Kick.cpp \
         ./command/Mode.cpp \
         ./command/Nick.cpp \
-        ./command/Part.cpp \
         ./command/Ping.cpp \
         ./command/Pong.cpp \
         ./command/Privmsg.cpp \
         ./command/Quit.cpp \
         ./message/Message.cpp \
 		./command/Pass.cpp \
-		./command/Notice.cpp \
 		./command/User.cpp \
 		./command/Whois.cpp 
 OBJS = $(SRCS:.cpp=.o)
