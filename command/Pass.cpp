@@ -9,8 +9,16 @@ Pass::~Pass() {
 void Pass::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth){
 	(void) channels;
 	(void) clients;
+
 	if (command.getParamCount() < 1) {
+		std::cout << "command.getParamCount() < 1" << std::endl;
 		sendError(sender, "461 " + sender->getNickname() + " PASS :Not enough parameters");
+		return;
+	}
+
+	if (sender->isPassAuthenticated()) {
+		std::cout << "sender->isPassAuthenticated()" << std::endl;
+		sendError(sender, "462 " + sender->getNickname() + " :You may not reregister");
 		return;
 	}
 
@@ -21,7 +29,5 @@ void Pass::execute(Client* sender, const Message& command, std::map<int, Client*
 		return;
 	}
 
-	sender->setAuthentication(true);
-	std::string response = ":localhost 001 " + sender->getNickname() + " :Password accepted\r\n";
-	send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+	sender->setPassAuthenticated(true);
 }

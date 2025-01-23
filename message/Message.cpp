@@ -21,33 +21,41 @@ size_t Message::getParamCount() const {
 }
 
 void Message::parse(const std::string& rowMessage) {
-	size_t pos = 0;
-	size_t prev = 0;
-	std::string token;
-	bool isVerb = true;
-	bool isParam = false;
-	bool isTrailing = false;
+    std::string cleanMessage = rowMessage;
+    cleanMessage.erase(std::remove(cleanMessage.begin(), cleanMessage.end(), '\r'), cleanMessage.end());
+    cleanMessage.erase(std::remove(cleanMessage.begin(), cleanMessage.end(), '\n'), cleanMessage.end());
 
-	while ((pos = rowMessage.find(" ", prev)) != std::string::npos) {
-		token = rowMessage.substr(prev, pos - prev);
-		if (isVerb) {
-			verb = token;
-			isVerb = false;
-			isParam = true;
-		} else if (isParam) {
-			if (token[0] == ':') {
-				params.push_back(rowMessage.substr(prev + 1));
-				isParam = false;
-				isTrailing = true;
-			} else {
-				params.push_back(token);
-			}
-		} else if (isTrailing) {
-			params.back() += " " + token;
-		}
-		prev = pos + 1;
-	}
-	if (prev < rowMessage.length()) {
-		params.push_back(rowMessage.substr(prev));
-	}
+    std::istringstream iss(cleanMessage);
+    std::string token;
+
+    // verb 파싱
+    if (!(iss >> verb)) return;
+
+    // params 파싱
+    std::string remaining;
+    getline(iss, remaining);
+    if (remaining.empty()) return;
+
+    // leading space 제거
+    remaining = remaining.substr(1);
+    
+    // trailing parameter 처리
+    size_t colonPos = remaining.find(" :");
+    if (colonPos != std::string::npos) {
+        std::string beforeColon = remaining.substr(0, colonPos);
+        std::string afterColon = remaining.substr(colonPos + 2);
+        
+        std::istringstream paramStream(beforeColon);
+        while (paramStream >> token) {
+            params.push_back(token);
+        }
+        if (!afterColon.empty()) {
+            params.push_back(afterColon);
+        }
+    } else {
+        std::istringstream paramStream(remaining);
+        while (paramStream >> token) {
+            params.push_back(token);
+        }
+    }
 }

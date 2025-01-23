@@ -14,32 +14,40 @@ class Client {
 		Client();
 		~Client();
 
-		void setConnected(bool status);
 		void setAuthentication(bool status);
-		void setNickname(const std::string& nickname);
+		void setBuffer(const std::string& buf);
+		void setNickname(const std::string& username);
+		void setRealname(const std::string& realname);
+		void setPassAuthenticated(bool status);
+		void setNickAuthenticated(bool status);
+		void setUserAuthenticated(bool status);
 
 		int getSocketFd() const;
 		const std::string& getIp() const;
 		int getPort() const;
-		bool isConnected() const;
 		bool isAuthenticated() const;
+		bool isPassAuthenticated() const;
+		bool isNickAuthenticated() const;
+		bool isUserAuthenticated() const;
+		std::string &getBuffer();
 		const std::string& getNickname() const;
+		const std::string& getRealname() const;
 
-		const std::string& getBuffer() const;
 
 	private:
 		int socketFd;
 		std::string ip;
 		int port;
 		std::string nickname;
-		std::string username;
+		std::string realname;
 		bool authenticated;
-		bool connected;
+		bool nickAuthenticated;
+		bool passAuthenticated;
+		bool userAuthenticated;
 
 		//unused
 		std::string buffer;
 
-		void setBuffer(const std::string& buf);
 };
 
 #endif

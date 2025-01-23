@@ -7,55 +7,44 @@ Nick::~Nick() {
 }
 
 void Nick::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth) {
-	if (command.getParamCount() < 1) {
-		return sendError(sender, "461 NICK :Not enough parameters");
-	}
-	
+    if (command.getParamCount() < 1) {
+        return sendError(sender, "431 :No nickname given");
+    }
 
 	std::string newNickname = command.getParam(0);
+
+	// ignore if the new nickname is the same as the old one
+	std::cout << "sender->getNickname() : " << sender->getNickname() << std::endl;
+	std::cout << "newNickname : " << newNickname << std::endl;
+	if (sender->getNickname() == newNickname) {
+        return;
+    }
 
 	if (!isValidNickname(newNickname)) {
         return sendError(sender, "432 " + newNickname + " :Erroneous nickname");
     }
 
-	for (std::map<int, Client*>::iterator it = clients.begin(); 
-         it != clients.end(); ++it) {
-        if (it->second->getNickname() == newNickname) {
-            return sendError(sender, "433 " + newNickname + 
-                           " :Nickname is already in use");
+	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (it->second != sender && it->second->getNickname() == newNickname) {
+            return sendError(sender, "433 " + newNickname + " :Nickname is already in use");
         }
     }
 
-	std::map<int, Client*>::iterator it = clients.find(sender->getSocketFd());
+	std::string oldNickname = sender->getNickname();
+    sender->setNickname(newNickname);
 
-	if (it == clients.end()) {
-		return sendError(sender, "401 " + newNickname + " :No such nick/channel");
-	}
-
-	Client* client = it->second;
-	std::string oldNickname = client->getNickname();
-
-	if (oldNickname.empty()) {
-        client->setNickname(newNickname);
-        std::string response = ":localhost 001 " + newNickname + 
-                             " :Welcome to the Internet Relay Network\r\n";
-        send(client->getSocketFd(), response.c_str(), response.size(), 0);
-        return;
+    if (!oldNickname.empty()) {
+        auth.updateNickname(oldNickname, newNickname);
+        for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
+            Channel* channel = it->second;
+            if (channel->searchMember(oldNickname) != NULL) {
+                channel->removeMember(*sender);
+                channel->addMember(*sender);
+            }
+        }
+        std::string response = ":" + oldNickname + " NICK " + newNickname + "\r\n";
+        broadcastToChannels(response, sender, channels);
     }
-
-	client->setNickname(newNickname);
-
-	auth.updateNickname(oldNickname, newNickname);
-	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
-		Channel* channel = it->second;
-		if (channel->searchMember(oldNickname) != NULL) {
-			channel->removeMember(*client);
-			channel->addMember(*client);
-		}
-	}
-
-	std::string response = ":" + oldNickname + " NICK " + newNickname + "\r\n";
-	broadcastToChannels(response, client, channels);
 }
 
 void Nick::broadcastToChannels(const std::string& message, Client* sender, std::map<std::string, Channel*>& channels) {

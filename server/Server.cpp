@@ -112,10 +112,6 @@ void Server::acceptClient(){
 	clients[clientSocketFd] = new Client(clientSocketFd, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
 	std::cout << "New client connected : " << clients[clientSocketFd]->getIp() << ":" << clients[clientSocketFd]->getPort() << std::endl;
 
-	// send authentication message
-	std::string welcomeMessage = "Please authenticate using PASS command\r\n";
-	std::string response = ":localhost 451 :You must first authenticate using PASS command\r\n";
-    send(clientSocketFd, response.c_str(), response.size(), 0);
 }
 
 void Server::handleClientEvent(int clientSocketFd) {
@@ -125,22 +121,19 @@ void Server::handleClientEvent(int clientSocketFd) {
     ssize_t bytesRead = recv(clientSocketFd, buffer, sizeof(buffer) - 1, 0);
     if (bytesRead > 0) {
         Client* client = clients[clientSocketFd];
-        std::string receivedData(buffer, bytesRead);
+        std::string newData(buffer, bytesRead);
+        client->setBuffer(client->getBuffer() + newData);  // 기존 buffer에 추가
+        std::string& receivedData = client->getBuffer();
         
-        // Split messages by CRLF and process each command
-        size_t start = 0;
-        size_t end = 0;
-        
-        while ((end = receivedData.find("\r\n", start)) != std::string::npos) {
-            std::string commandStr = receivedData.substr(start, end - start);
-            if (!commandStr.empty()) {
-                std::cout << "Processing command: " << commandStr << std::endl;
-                
-                Message msg(commandStr);
-                dispatcher.dispatch(client, msg);
-            }
-            start = end + 2; // Skip \r\n
+        size_t pos = 0;
+        while ((pos = receivedData.find("\r\n")) != std::string::npos) {
+            std::string message = receivedData.substr(0, pos);
+			std::cout << "Received message from " << client->getIp() << ":" << client->getPort() << " : " << message << std::endl;
+            Message msg(message);
+            dispatcher.dispatch(client, msg);
+            receivedData = receivedData.substr(pos + 2);  // 처리된 메시지 제거
         }
+        client->setBuffer(receivedData);
     } else if (bytesRead == 0) {
         std::cout << "Client disconnected : " << clients[clientSocketFd]->getIp() << ":" 
                  << clients[clientSocketFd]->getPort() << std::endl;

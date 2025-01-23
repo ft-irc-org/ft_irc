@@ -5,6 +5,7 @@
 #include <string>
 #include <exception>
 #include <vector>
+#include <sstream>
 
 class Message {
 	public:

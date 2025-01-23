@@ -42,7 +42,7 @@ class Auth {
 		void updateNickname(const std::string& oldNickname, const std::string& newNickname);
 
 		// 서버 설정 가져오기
-		const ServerConfig& getConfig() const;
+		// const ServerConfig& getConfig() const;
 		const std::string& getPassword() const;
 
 	private:
@@ -55,7 +55,7 @@ class Auth {
 		
 		std::map<AuthPK, unsigned int> authMap;
 
-		ServerConfig config;
+		const std::string serverPassword;
 
 };
 

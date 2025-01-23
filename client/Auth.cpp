@@ -9,8 +9,7 @@ bool Auth::AuthPK::operator<(const AuthPK& pk) const {
 
 Auth::Auth() {}
 
-Auth::Auth(const ServerConfig& sc) {
-	config = sc;
+Auth::Auth(const ServerConfig& sc) : serverPassword(sc.getPassword()) {
 }
 
 Auth::~Auth() {}
@@ -110,10 +109,10 @@ void Auth::updateNickname(const std::string& oldNickname, const std::string& new
 	}
 }
 
-const ServerConfig& Auth::getConfig() const {
-	return config;
-}
+// const ServerConfig& Auth::getConfig() const {
+// 	return config;
+// }
 
 const std::string& Auth::getPassword() const {
-	return config.getPassword();
+	return serverPassword;
 }
