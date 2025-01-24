@@ -9,7 +9,7 @@ Channel::Channel() : channelName(""), topic(""), channelMode(0), userCount(0), u
 Channel::Channel(int fd, const std::string& channelName) : channelName(channelName), topic(""), channelMode(0), userCount(0), userLimit(0), password("") {
 	if (fd == -1) {
 		channelFd = nextFd++;
-    } else {
+	} else {
 		channelFd = fd;
 		if (fd >= nextFd) {
 		nextFd = fd + 1;
@@ -45,32 +45,32 @@ void Channel::unsetChannelMode(unsigned int requestMode) {
 
 void Channel::setUserCount(unsigned int userCount) { this->userCount = userCount; }
 
-void Channel::addMember(const Client& client){
-	users[client.getSocketFd()] = client;
-	userCount++;
+void Channel::addMember(Client* client){
+    users[client->getSocketFd()] = client;
+    userCount++;
 }
 
-void Channel::removeMember(const Client& client){
-	users.erase(client.getSocketFd());
+void Channel::removeMember(Client* client){
+	users.erase(client->getSocketFd());
 	userCount--;
 }
 
-Client *Channel::searchMember(const std::string targeName) const {
-	for (std::map<int, Client>::const_iterator it = users.begin(); it != users.end(); ++it){
-		if (it->second.getNickname() == targeName){
-			return (Client *)&it->second;
+Client* Channel::searchMember(const std::string targeName) const {
+	for (std::map<int, Client*>::const_iterator it = users.begin(); it != users.end(); ++it) {
+		if (it->second->getNickname() == targeName) {  // 포인터이므로 ->로 접근
+			return it->second;  // 포인터 반환
 		}
 	}
 	return NULL;
 }
 
-void Channel::broadcast(const std::string& message, const Client& sender){
-	for (std::map<int, Client>::iterator it = users.begin(); it != users.end(); ++it){
-		if (it->first != sender.getSocketFd()){
-			std::string response = ":" + sender.getNickname() + " PRIVMSG " + channelName + " :" + message + "\r\n";
-			send(it->first, response.c_str(), response.size(), 0);
+void Channel::broadcast(const std::string& message, Client* sender) {
+	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
+		if (it->first != sender->getSocketFd()) {
+			std::string response = ":" + sender->getNickname() + " PRIVMSG " + channelName + " :" + message + "\r\n";
+			it->second->setOutBuffer(response);
 		}
-	}	
+	}   
 }
 
 bool Channel::hasMode(unsigned int requestMode) const {

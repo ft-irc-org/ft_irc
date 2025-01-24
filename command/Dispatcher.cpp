@@ -27,7 +27,8 @@ void Dispatcher::dispatch(Client* client, const Message& command) {
 	}
 	if (!client->isAuthenticated() && command.getVerb() != "PASS" && command.getVerb() != "NICK" && command.getVerb() != "USER") {
 		std::string response = ":localhost 451 " + client->getNickname() + " :You have not registered\r\n";
-		send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		// send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		client->setOutBuffer(response);
 		return;
 	}
 
@@ -36,6 +37,7 @@ void Dispatcher::dispatch(Client* client, const Message& command) {
 		it->second->execute(client, command, clients, channels, auth);
 	} else {
 		std::string response = ":localhost 421 " + client->getNickname() + " :Unknown command\r\n";
-		send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		// send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		client->setOutBuffer(response);
 	}
 }

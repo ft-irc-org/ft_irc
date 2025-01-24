@@ -16,6 +16,7 @@ class Client {
 
 		void setAuthentication(bool status);
 		void setBuffer(const std::string& buf);
+		void setOutBuffer(const std::string& buf);
 		void setNickname(const std::string& username);
 		void setRealname(const std::string& realname);
 		void setPassAuthenticated(bool status);
@@ -30,6 +31,7 @@ class Client {
 		bool isNickAuthenticated() const;
 		bool isUserAuthenticated() const;
 		std::string &getBuffer();
+		std::string &getOutBuffer();
 		const std::string& getNickname() const;
 		const std::string& getRealname() const;
 
@@ -45,8 +47,8 @@ class Client {
 		bool passAuthenticated;
 		bool userAuthenticated;
 
-		//unused
 		std::string buffer;
+		std::string outBuffer;
 
 };
 

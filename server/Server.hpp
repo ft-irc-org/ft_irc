@@ -22,6 +22,8 @@
 
 # define MAX_CLIENTS 10
 
+// class Dispatcher;
+
 class Server {
 	public:
 		Server(const ServerConfig& config);
@@ -29,6 +31,12 @@ class Server {
 
 		void start();
 
+		void removeReadEvent(int clientFd);
+		void removeWriteEvent(int clientFd);
+
+
+		std::map<std::string, Channel*>& getChannels();
+		std::map<int, Client*>& getClients();
 	private:
 		ServerConfig config;
 		Dispatcher dispatcher;
@@ -44,7 +52,11 @@ class Server {
 		struct kevent events[MAX_CLIENTS];
 
 		void acceptClient();
-		void handleClientEvent(int clientFd);
+		void handleClientRead(int clientFd);
+		void handleClientWrite(int clientFd);
+
+		void addWriteEvent(int clientFd);
+		void addReadEvent(int clientFd);
 
 		int initSocket();
 		int initKqueue();

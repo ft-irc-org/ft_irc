@@ -25,7 +25,8 @@
 
 class Dispatcher {
 	public:
-		Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients, const ServerConfig& config);
+		Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients, 
+                  const ServerConfig& config);
 
 		~Dispatcher();
 

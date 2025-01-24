@@ -9,7 +9,8 @@ Privmsg::~Privmsg() {
 void Privmsg::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth){
 	if (command.getParamCount() < 2) {
 		std::string response = ":localhost 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters\r\n";
-		send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+		// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+		sender->setOutBuffer(response);
 		return;
 	}
 
@@ -21,7 +22,8 @@ void Privmsg::execute(Client* sender, const Message& command, std::map<int, Clie
 		std::map<std::string, Channel*>::iterator it = channels.find(target);
 		if (it == channels.end()) {
 			std::string response = ":localhost 403 " + sender->getNickname() + " " + target + " :No such channel\r\n";
-			send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+			// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+			sender->setOutBuffer(response);
 			return;
 		}
 
@@ -32,8 +34,8 @@ void Privmsg::execute(Client* sender, const Message& command, std::map<int, Clie
 		// 	return;
 		// }
 
-		std::string response = "< " + sender->getNickname() + "> " + message + "\r\n";
-		channel->broadcast(response, *sender);
+		std::string response = message + "\r\n";
+		channel->broadcast(response, sender);
 	} else {
 		for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 			if (it->first == sender->getSocketFd()) {
@@ -42,7 +44,8 @@ void Privmsg::execute(Client* sender, const Message& command, std::map<int, Clie
 
 			if (it->second->getNickname() == target) {
 				std::string response = "*" + sender->getNickname() + "* " + message + "\r\n";
-				send(it->first, response.c_str(), response.size(), 0);
+				// send(it->first, response.c_str(), response.size(), 0);
+				it->second->setOutBuffer(response);
 				return;
 			}
 		}

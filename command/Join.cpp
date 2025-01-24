@@ -15,7 +15,8 @@ void Join::execute(Client* sender, const Message& command,
     if (command.getParamCount() < 1) {
         std::string response = ":localhost 461 " + sender->getNickname() + 
                              " JOIN :Not enough parameters\r\n";
-        send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+        sender->setOutBuffer(response);
         return;
     }
 
@@ -25,7 +26,8 @@ void Join::execute(Client* sender, const Message& command,
     if (channelName[0] != '#') {
         std::string response = ":localhost 403 " + sender->getNickname() + 
                              " " + channelName + " :No such channel\r\n";
-        send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+        sender->setOutBuffer(response);
         return;
     }
 
@@ -48,7 +50,8 @@ void Join::execute(Client* sender, const Message& command,
             if (!auth.hasPermission(sender->getNickname(), channelName, Auth::OP)) {
                 std::string response = ":localhost 473 " + sender->getNickname() + 
                                      " " + channelName + " :Cannot join channel (+i)\r\n";
-                send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+                sender->setOutBuffer(response);
                 return;
             }
         }
@@ -58,7 +61,8 @@ void Join::execute(Client* sender, const Message& command,
             if (password != channel->getPassword()) {
                 std::string response = ":localhost 475 " + sender->getNickname() + 
                                      " " + channelName + " :Cannot join channel (+k)\r\n";
-                send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+                sender->setOutBuffer(response);
                 return;
             }
         }
@@ -68,22 +72,23 @@ void Join::execute(Client* sender, const Message& command,
             if (channel->getUserCount() >= channel->getUserLimit()) {
                 std::string response = ":localhost 471 " + sender->getNickname() + 
                                      " " + channelName + " :Cannot join channel (+l)\r\n";
-                send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+                sender->setOutBuffer(response);
                 return;
             }
         }
     }
     
     // 채널 참가
-    channel->addMember(*sender);
-    std::string response = "* " + sender->getNickname() + " has joined " + channelName + "\r\n";
-    channel->broadcast(response, *sender);
+    channel->addMember(sender);
+    std::string response = sender->getNickname() + " has joined ";
+    channel->broadcast(response, sender);
 	auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
 
     // Topic 정보 전송
     if (!channel->getTopic().empty()) {
-        std::string topicResponse = ":localhost 332 " + sender->getNickname() + 
-                                  " " + channelName + " :" + channel->getTopic() + "\r\n";
-        send(sender->getSocketFd(), topicResponse.c_str(), topicResponse.size(), 0);
+        response = ":localhost 332 " + sender->getNickname() + " " + channelName + " :" + channel->getTopic() + "\r\n";
+        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+        sender->setOutBuffer(response);
     }
 }

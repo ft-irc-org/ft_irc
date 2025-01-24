@@ -20,6 +20,7 @@ const std::string& Client::getRealname() const { return realname; }
 bool Client::isPassAuthenticated() const { return passAuthenticated; }
 bool Client::isNickAuthenticated() const { return nickAuthenticated; }
 bool Client::isUserAuthenticated() const { return userAuthenticated; }
+std::string& Client::getOutBuffer() { return outBuffer; }
 // setter
 void Client::setAuthentication(bool status) { authenticated = status; }
 void Client::setPassAuthenticated(bool status) { passAuthenticated = status; }
@@ -29,4 +30,7 @@ void Client::setUserAuthenticated(bool status) { userAuthenticated = status; }
 void Client::setRealname(const std::string& realname) { this->realname = realname; }
 void Client::setBuffer(const std::string& buf) {
 	buffer += buf;
+}
+void Client::setOutBuffer(const std::string& buf) {
+	outBuffer += buf;
 }

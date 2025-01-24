@@ -38,8 +38,8 @@ void Nick::execute(Client* sender, const Message& command, std::map<int, Client*
         for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
             Channel* channel = it->second;
             if (channel->searchMember(oldNickname) != NULL) {
-                channel->removeMember(*sender);
-                channel->addMember(*sender);
+                channel->removeMember(sender);
+                channel->addMember(sender);
             }
         }
         std::string response = ":" + oldNickname + " NICK " + newNickname + "\r\n";
@@ -51,7 +51,7 @@ void Nick::broadcastToChannels(const std::string& message, Client* sender, std::
 	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
 		Channel* channel = it->second;
 		if (channel->searchMember(sender->getNickname()) != NULL) {
-			channel->broadcast(message, *sender);
+			channel->broadcast(message, sender);
 		}
 	}
 }

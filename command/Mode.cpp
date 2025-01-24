@@ -39,7 +39,8 @@ void Mode::handleModeQuery(Client* sender, const std::string& target,
         }
         
         std::string response = std::string(":") + sender->getNickname() + " MODE " + target + " " + getModeString(it->second) + "\r\n";
-        send(sender->getSocketFd(), response.c_str(), response.length(), 0);
+        // send(sender->getSocketFd(), response.c_str(), response.length(), 0);
+        sender->setOutBuffer(response);
     } else {
         sendError(sender, "502 :Cant change mode for other users");
     }
@@ -163,7 +164,7 @@ void Mode::handleChannelMode(Client* sender, const std::string& channelName, con
         }
         notification += "\r\n";
         
-        channel->broadcast(notification, *sender);
+        channel->broadcast(notification, sender);
     }
 }
 

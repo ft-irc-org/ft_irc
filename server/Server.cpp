@@ -11,6 +11,7 @@ Server::Server(const ServerConfig &sc): config(sc), dispatcher(channels, clients
 
 Server::~Server() {}
 
+
 int Server::initSocket() {
 	// socket openning
 	int serverSocket = socket(AF_INET, SOCK_STREAM, 0); // AF_INET : IPv4 인터넷 프로토콜, SOCK_STREAM : TCP 통신, 0 : 프로토콜 번호
@@ -81,10 +82,13 @@ void Server::start() {
 		if (numEvents < 0) throw std::runtime_error("Error while polling events!");
 		for (int i = 0; i < numEvents; i++) {
 			// server socket에 이벤트가 발생했을 때 (신규 클라이언트 접속)
-			if (events[i].ident == serverSocketFd)
-				acceptClient();
-			else
-				handleClientEvent(events[i].ident);
+			if (events[i].ident == serverSocketFd) {
+				acceptClient(); 
+			} else if (events[i].filter == EVFILT_READ) {
+    			handleClientRead(events[i].ident);
+			} else if (events[i].filter == EVFILT_WRITE) {
+    			handleClientWrite(events[i].ident);
+			}
 		}
 	}
 }
@@ -104,17 +108,15 @@ void Server::acceptClient(){
 		throw std::runtime_error("Error while setting client socket to non-blocking!");
 
 	// add client socket to kqueue
-	struct kevent event;
-	EV_SET(&event, clientSocketFd, EVFILT_READ, EV_ADD, 0, 0, NULL);
-	if (kevent(kqueueFd, &event, 1, NULL, 0, NULL) == -1)
-		throw std::runtime_error("Failed to add client socket to kqueue!");
+	addReadEvent(clientSocketFd);
+	addWriteEvent(clientSocketFd);
 
 	clients[clientSocketFd] = new Client(clientSocketFd, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
 	std::cout << "New client connected : " << clients[clientSocketFd]->getIp() << ":" << clients[clientSocketFd]->getPort() << std::endl;
 
 }
 
-void Server::handleClientEvent(int clientSocketFd) {
+void Server::handleClientRead(int clientSocketFd) {
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
     
@@ -145,5 +147,51 @@ void Server::handleClientEvent(int clientSocketFd) {
         delete clients[clientSocketFd];
         clients.erase(clientSocketFd);
         close(clientSocketFd);
+    }
+}
+
+void Server::addReadEvent(int clientFd) {
+	struct kevent event;
+	EV_SET(&event, clientFd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+	kevent(kqueueFd, &event, 1, NULL, 0, NULL);
+}
+
+void Server::removeReadEvent(int clientFd) {
+	struct kevent event;
+	EV_SET(&event, clientFd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	kevent(kqueueFd, &event, 1, NULL, 0, NULL);
+}
+
+void Server::addWriteEvent(int clientFd) {
+    struct kevent event;
+    EV_SET(&event, clientFd, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+    kevent(kqueueFd, &event, 1, NULL, 0, NULL);
+}
+
+void Server::removeWriteEvent(int clientFd) {
+    struct kevent event;
+    EV_SET(&event, clientFd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+    kevent(kqueueFd, &event, 1, NULL, 0, NULL);
+}
+
+void Server::handleClientWrite(int clientSocketFd) {
+    Client* client = clients[clientSocketFd];
+
+    if (client->getOutBuffer().empty()) {
+        return;
+    }
+    
+    ssize_t sent = send(clientSocketFd, client->getOutBuffer().c_str(), 
+                       client->getOutBuffer().length(), 0);
+    if (sent < 0) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            delete clients[clientSocketFd];
+            clients.erase(clientSocketFd);
+            close(clientSocketFd);
+        }
+        return;
+    }
+    if (sent > 0) {
+        client->getOutBuffer().erase(0, sent);
     }
 }
