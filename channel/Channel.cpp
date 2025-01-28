@@ -71,6 +71,11 @@ Client* Channel::searchMember(const std::string targeName) const {
 }
 
 void Channel::broadcast(const std::string& message, Client* sender) {
+	if (!isMember(sender)) {
+		std::string err = ":localhost 442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n";
+		sender->setOutBuffer(err);
+		return;
+	}
 	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
 		if (it->first != sender->getSocketFd()) {
 			std::string response = ":" + sender->getNickname() + " PRIVMSG " + channelName + " :" + message + "\r\n";

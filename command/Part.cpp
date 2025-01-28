@@ -43,17 +43,13 @@ void Part::execute(Client* sender, const Message& command, std::map<int, Client*
     
     // 파트하는 클라이언트에게 먼저 PART 메시지 전송
     sender->setOutBuffer(partMessage);
-    
+
+	channel->broadcast(partMessage, sender);
 
 	// 채널에서 유저 제거 (이 시점에서 실제로 제거)
     channel->removeMember(sender);
 
-    // 다른 멤버들에게 PART 메시지 전송
-    channel->broadcast(partMessage, sender);
-
-	// 윈도우를 닫기위한 가짜 에러메시지 전송
-	std::string closeWindow = ":localhost 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
-	sender->setOutBuffer(closeWindow);
+    // channel->broadcast(partMessage, sender);
 
     // 채널이 비었으면 삭제
     if (channel->getUserCount() == 0) {
