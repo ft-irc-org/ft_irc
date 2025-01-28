@@ -6,9 +6,10 @@ Whois::Whois() {
 Whois::~Whois() {
 }
 
-void Whois::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth) {
+void Whois::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
 	(void)channels;
 	(void)auth;
+	(void)server;
 	if (command.getParamCount() < 2) {
 		sendError(sender, "431 " + command.getParam(0) + " :No nickname given");
 		return;

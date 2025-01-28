@@ -6,7 +6,7 @@ Pass::Pass() {
 Pass::~Pass() {
 }
 
-void Pass::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth){
+void Pass::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
 	(void) channels;
 	(void) clients;
 
@@ -26,6 +26,7 @@ void Pass::execute(Client* sender, const Message& command, std::map<int, Client*
 
 	if (password != auth.getPassword()) {
 		sendError(sender, "464 " + sender->getNickname() + " :Password incorrect");
+		disconnectClient(sender, server, clients);
 		return;
 	}
 

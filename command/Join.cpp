@@ -9,8 +9,9 @@ Join::~Join() {
 void Join::execute(Client* sender, const Message& command, 
                   std::map<int, Client*> &clients, 
                   std::map<std::string, Channel*>& channels, 
-                  Auth &auth) {
+                  Auth &auth, ServerEventHandler *server) {
     (void)clients;
+    (void)server;
     
     if (command.getParamCount() < 1) {
         std::string response = ":localhost 461 " + sender->getNickname() + 

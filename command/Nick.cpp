@@ -6,7 +6,9 @@ Nick::Nick() {
 Nick::~Nick() {
 }
 
-void Nick::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth) {
+void Nick::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
+    (void) clients;
+    (void) server;
     if (command.getParamCount() < 1) {
         return sendError(sender, "431 :No nickname given");
     }

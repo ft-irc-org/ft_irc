@@ -9,8 +9,9 @@ Mode::~Mode() {
 void Mode::execute(Client* sender, const Message& command, 
                   std::map<int, Client*> &clients, 
                   std::map<std::string, Channel*>& channels, 
-                  Auth &auth) {
+                  Auth &auth, ServerEventHandler *server) {
 	(void) clients;
+    (void) server;
     if (command.getParamCount() < 1) {
         return sendError(sender, "461 MODE :Not enough parameters");
     }

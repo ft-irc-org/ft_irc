@@ -6,8 +6,9 @@ Kick::Kick() {
 Kick::~Kick() {
 }
 
-void Kick::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth){
+void Kick::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
 	(void)clients;
+	(void)server;
 
 	if (command.getParamCount() < 2) {
 		std::string response = ":localhost 461 " + sender->getNickname() + " KICK :Not enough parameters\r\n";

@@ -6,8 +6,9 @@ Quit::Quit() {
 Quit::~Quit() {
 }
 
-void Quit::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth) {
+void Quit::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
 	(void) command;
+	(void) server;
 	std::string response = ":" + sender->getNickname() + " QUIT\r\n";
 	// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 	sender->setOutBuffer(response);

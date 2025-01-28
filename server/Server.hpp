@@ -17,49 +17,46 @@
 #include "ServerConfig.hpp"
 #include "../client/Client.hpp"
 // #include "../client/Auth.hpp"
+#include "ServerEventHandler.hpp"
 #include "../channel/Channel.hpp"
 #include "../command/Dispatcher.hpp"
 
 # define MAX_CLIENTS 10
 
-// class Dispatcher;
+class Dispatcher;
 
-class Server {
+class Server : public ServerEventHandler {
 	public:
-		Server(const ServerConfig& config);
-		~Server();
+        Server(const ServerConfig& config);
+        ~Server();
 
-		void start();
+        void start();
 
-		void removeReadEvent(int clientFd);
-		void removeWriteEvent(int clientFd);
+        void removeReadEvent(int clientFd);
+        void removeWriteEvent(int clientFd);
 
+        std::map<std::string, Channel*>& getChannels();
+        std::map<int, Client*>& getClients();
 
-		std::map<std::string, Channel*>& getChannels();
-		std::map<int, Client*>& getClients();
-	private:
-		ServerConfig config;
-		Dispatcher dispatcher;
-		std::map<std::string, Channel*> channels; // channelName, channel
-		std::map<int, Client*> clients; // fd, client
+    private:
+        ServerConfig config;
+        std::map<std::string, Channel*> channels; // channelName, channel
+        std::map<int, Client*> clients; // fd, client
+        Dispatcher* dispatcher; // 포인터로 변경
 
-		
-		// std::map<int, Client*> clients; // fd, client
-		// std::map<int, Channel*> channels; // fd, channel
+        uintptr_t serverSocketFd;
+        int kqueueFd;
+        struct kevent events[MAX_CLIENTS];
 
-		uintptr_t	serverSocketFd;
-		int kqueueFd;
-		struct kevent events[MAX_CLIENTS];
+        void acceptClient();
+        void handleClientRead(int clientFd);
+        void handleClientWrite(int clientFd);
 
-		void acceptClient();
-		void handleClientRead(int clientFd);
-		void handleClientWrite(int clientFd);
+        void addWriteEvent(int clientFd);
+        void addReadEvent(int clientFd);
 
-		void addWriteEvent(int clientFd);
-		void addReadEvent(int clientFd);
-
-		int initSocket();
-		int initKqueue();
+        int initSocket();
+        int initKqueue();
 };
 
 #endif

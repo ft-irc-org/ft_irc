@@ -1,15 +1,19 @@
 #include "Server.hpp"
 
-Server::Server(const ServerConfig &sc): config(sc), dispatcher(channels, clients, config, this) {
+Server::Server(const ServerConfig &sc): config(sc){
 	std::cout << "Server created" << std::endl;
 	std::cout << "Server port : " << config.getPort() << std::endl;
 
 	// Create a socket
 	if ((serverSocketFd = initSocket()) < 0) throw std::runtime_error(": Error while creating a socket!");
 	if ((kqueueFd = initKqueue()) < 0) throw std::runtime_error(": Error while creating a kqueue!");
+
+	dispatcher = new Dispatcher(channels, clients, config, this);
 }
 
-Server::~Server() {}
+Server::~Server() {
+	delete dispatcher;
+}
 
 
 int Server::initSocket() {
@@ -132,7 +136,7 @@ void Server::handleClientRead(int clientSocketFd) {
             std::string message = receivedData.substr(0, pos);
 			std::cout << "Received message from " << client->getIp() << ":" << client->getPort() << " : " << message << std::endl;
             Message msg(message);
-            dispatcher.dispatch(client, msg);
+            dispatcher->dispatch(client, msg);
             receivedData = receivedData.substr(pos + 2);  // 처리된 메시지 제거
         }
         client->setBuffer(receivedData);

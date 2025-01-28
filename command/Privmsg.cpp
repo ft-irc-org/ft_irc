@@ -6,7 +6,10 @@ Privmsg::Privmsg() {
 Privmsg::~Privmsg() {
 }
 
-void Privmsg::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth){
+void Privmsg::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server){
+	(void) clients;
+	(void) auth;
+	(void) server;
 	if (command.getParamCount() < 2) {
 		std::string response = ":localhost 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters\r\n";
 		// send(sender->getSocketFd(), response.c_str(), response.size(), 0);

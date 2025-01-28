@@ -6,10 +6,11 @@ User::User() {
 User::~User() {
 }
 
-void User::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth) {
+void User::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
     (void)clients;
     (void)channels;
     (void)auth;
+    (void)server;
 
 	if (command.getParamCount() < 4) {
         return sendError(sender, "461 " + sender->getNickname() + " USER :Not enough parameters");
