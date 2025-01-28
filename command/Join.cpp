@@ -26,7 +26,7 @@ void Join::execute(Client* sender, const Message& command,
 
     if (channelName[0] != '#') {
         std::string response = ":localhost 403 " + sender->getNickname() + 
-                             " " + channelName + " :No such channel\r\n";
+                             " " + channelName + " :Wrong format : Wrong channel name\r\n";
         // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
         sender->setOutBuffer(response);
         return;
@@ -85,6 +85,7 @@ void Join::execute(Client* sender, const Message& command,
     std::string response = sender->getNickname() + " has joined ";
     channel->broadcast(response, sender);
 	auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
+    sender->setCurrentChannel(channelName);
 
     // Topic 정보 전송
     if (!channel->getTopic().empty()) {

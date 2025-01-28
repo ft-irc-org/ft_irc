@@ -35,6 +35,9 @@ class Client {
 		const std::string& getNickname() const;
 		const std::string& getRealname() const;
 
+		void setCurrentChannel(const std::string& channel);
+		void removeCurrentChannel();
+
 
 	private:
 		int socketFd;
@@ -46,6 +49,7 @@ class Client {
 		bool nickAuthenticated;
 		bool passAuthenticated;
 		bool userAuthenticated;
+		std::string current_channel;
 
 		std::string buffer;
 		std::string outBuffer;

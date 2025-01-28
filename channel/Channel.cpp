@@ -25,8 +25,17 @@ const std::string& Channel::getChannelName() const { return channelName; }
 const std::string& Channel::getTopic() const { return topic; }
 unsigned int Channel::getChannelMode() const { return channelMode; }
 unsigned int Channel::getUserLimit() const { return userLimit; }
-unsigned int Channel::getUserCount() const { return userCount; }
+unsigned int Channel::getUserCount() const {
+	return users.size();
+ }
+std::map<int, Client *> Channel::getUsers() const { return users; }
 
+bool Channel::isMember(Client *client) const {
+	return users.find(client->getSocketFd()) != users.end();
+}
+bool Channel::isOperator(Client *client) const {
+	return hasMode(OPERATOR_PRIVILEGES) && isMember(client);
+}
 void Channel::setChannelFd(int channelFd) { this->channelFd = channelFd; }
 void Channel::setChannelName(const std::string& channelName) { this->channelName = channelName; }
 void Channel::setTopic(const std::string& topic) { this->topic = topic; }
@@ -43,8 +52,6 @@ void Channel::unsetChannelMode(unsigned int requestMode) {
 	channelMode &= ~requestMode;
 }
 
-void Channel::setUserCount(unsigned int userCount) { this->userCount = userCount; }
-
 void Channel::addMember(Client* client){
     users[client->getSocketFd()] = client;
     userCount++;
@@ -52,7 +59,6 @@ void Channel::addMember(Client* client){
 
 void Channel::removeMember(Client* client){
 	users.erase(client->getSocketFd());
-	userCount--;
 }
 
 Client* Channel::searchMember(const std::string targeName) const {
@@ -70,7 +76,7 @@ void Channel::broadcast(const std::string& message, Client* sender) {
 			std::string response = ":" + sender->getNickname() + " PRIVMSG " + channelName + " :" + message + "\r\n";
 			it->second->setOutBuffer(response);
 		}
-	}   
+	}
 }
 
 bool Channel::hasMode(unsigned int requestMode) const {

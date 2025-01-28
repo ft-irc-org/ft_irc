@@ -20,7 +20,8 @@ SRCS = main.cpp \
         ./message/Message.cpp \
 		./command/Pass.cpp \
 		./command/User.cpp \
-		./command/Whois.cpp 
+		./command/Whois.cpp \
+        ./command/Part.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(NAME)

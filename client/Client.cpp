@@ -34,3 +34,9 @@ void Client::setBuffer(const std::string& buf) {
 void Client::setOutBuffer(const std::string& buf) {
 	outBuffer += buf;
 }
+void Client::setCurrentChannel(const std::string& channel) {
+	current_channel = channel;
+}
+void Client::removeCurrentChannel() {
+	current_channel = "";
+}

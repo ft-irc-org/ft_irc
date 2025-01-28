@@ -30,15 +30,17 @@ class Channel {
 		unsigned int getChannelMode() const;
 		unsigned int getUserCount() const;
 		unsigned int getUserLimit() const;
+		std::map<int, Client *> getUsers() const;
 
 		void setChannelFd(int channelFd);
 		void setChannelName(const std::string& channelName);
 		void setTopic(const std::string& topic);
 		void setPassword(const std::string& password);
-		void setUserCount(unsigned int userCount);
 		void setUserLimit(unsigned int userLimit);
 
 		bool hasMode(unsigned int requestMode) const;
+		bool isMember(Client *client) const;
+		bool isOperator(Client *client) const;
 
 		void addMember(Client *client);
 		void removeMember(Client *client);

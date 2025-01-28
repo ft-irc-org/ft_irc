@@ -12,6 +12,7 @@ Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, 
 	registerHandler("QUIT", new Quit());
 	registerHandler("USER", new User());
 	registerHandler("WHOIS", new Whois());
+	registerHandler("PART", new Part());
 }
 
 Dispatcher::~Dispatcher() {

@@ -22,6 +22,7 @@
 # include "Pass.hpp"
 # include "User.hpp"
 # include "Whois.hpp"
+# include "Part.hpp"
 
 # include "../server/Server.hpp"
 
