@@ -44,6 +44,7 @@ class Auth {
 		// 서버 설정 가져오기
 		// const ServerConfig& getConfig() const;
 		const std::string& getPassword() const;
+		bool isNoob(const std::string& userNickname) const;
 
 	private:
 		typedef struct AuthPK {

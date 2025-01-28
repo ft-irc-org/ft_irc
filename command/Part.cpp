@@ -9,7 +9,7 @@ Part::~Part() {
 void Part::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
     (void) clients;
     (void) server;
-    (void) auth;
+    (void) auth; // 나갈 때 권한 위임하거나 해제하는 것은 없음
 
     if (command.getParamCount() < 1) {
         sendError(sender, ":localhost 461 " + sender->getNickname() + " PART :Not enough parameters\r\n");

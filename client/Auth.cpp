@@ -14,6 +14,15 @@ Auth::Auth(const ServerConfig& sc) : serverPassword(sc.getPassword()) {
 
 Auth::~Auth() {}
 
+bool Auth::isNoob(const std::string& userNickname) const {
+	AuthPK pk;
+	pk.userNickname = userNickname;
+	pk.channelName = "";
+		
+	std::map<AuthPK, unsigned int>::const_iterator it = authMap.find(pk);
+	return it == authMap.end();
+}
+
 bool Auth::hasPermission(const std::string& userNickname, const std::string& channelName, int permissions) const {
 	AuthPK pk;
 	pk.userNickname = userNickname;

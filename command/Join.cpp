@@ -84,7 +84,10 @@ void Join::execute(Client* sender, const Message& command,
     channel->addMember(sender);
     std::string response = sender->getNickname() + " has joined ";
     channel->broadcast(response, sender);
-	auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
+	// 기존 권한이 없을 때만 NONE 권한 추가
+    if (auth.isNoob(sender->getNickname())) {
+        auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
+    }
     sender->setCurrentChannel(channelName);
 
     // Topic 정보 전송
