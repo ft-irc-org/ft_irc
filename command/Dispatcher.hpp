@@ -23,10 +23,12 @@
 # include "User.hpp"
 # include "Whois.hpp"
 
+# include "../server/Server.hpp"
+
 class Dispatcher {
 	public:
 		Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients, 
-                  const ServerConfig& config);
+                  const ServerConfig& config, Server* server);
 
 		~Dispatcher();
 
@@ -40,10 +42,12 @@ class Dispatcher {
 		void removeChannel(const std::string& name);
 
 	private:
+		Server* server;
 		Auth auth;
 		std::map<std::string, CommandHandler*> handlers;
 		std::map<std::string, Channel*>& channels;
 		std::map<int, Client*>& clients;
+
 
 };
 

@@ -1,6 +1,6 @@
 #include "Dispatcher.hpp"
 
-Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients, const ServerConfig& config) : auth(config), channels(channels), clients(clients) {
+Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, Client*>& clients, const ServerConfig& config, Server *server) : auth(config), channels(channels), clients(clients), server(server) {
 	registerHandler("JOIN", new Join());
 	registerHandler("KICK", new Kick());
 	registerHandler("MODE", new Mode());
