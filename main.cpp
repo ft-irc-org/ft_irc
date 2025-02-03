@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
         // Initialize server
         std::cout << "Initializing server on port " << port << "..." << std::endl;
-        Server server(config);
+        Server server(config, "ircServer");
 
         // Start server
         std::cout << "Starting server..." << std::endl;

@@ -43,7 +43,7 @@ class Server : public ServerEventHandler {
         std::map<int, Client*> clients; // fd, client
         Dispatcher* dispatcher; // 포인터로 변경
 
-        const std::string serverName;
+        std::string serverName;
         uintptr_t serverSocketFd;
         int kqueueFd;
         struct kevent events[MAX_CLIENTS];

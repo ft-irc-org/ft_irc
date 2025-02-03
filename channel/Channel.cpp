@@ -76,12 +76,39 @@ void Channel::broadcast(const std::string& message, Client* sender) {
 		sender->setOutBuffer(err);
 		return;
 	}
+	if (sender == nullptr) {
+		for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
+			std::string response = ":" + sender->getNickname() + " PRIVMSG " + channelName + " :" + message + "\r\n";
+			it->second->setOutBuffer(response);
+		}
+		return;
+	}
 	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
 		if (it->first != sender->getSocketFd()) {
 			std::string response = ":" + sender->getNickname() + " PRIVMSG " + channelName + " :" + message + "\r\n";
 			it->second->setOutBuffer(response);
 		}
 	}
+}
+
+std::string Channel::getModeString() const {
+	std::string mode = "";
+	if (hasMode(INVITE_ONLY)) {
+		mode += "i";
+	}
+	if (hasMode(TOPIC_RESTRICTED)) {
+		mode += "t";
+	}
+	if (hasMode(KEY_REQUIRED)) {
+		mode += "k";
+	}
+	if (hasMode(OPERATOR_PRIVILEGES)) {
+		mode += "o";
+	}
+	if (hasMode(USER_LIMIT)) {
+		mode += "l";
+	}
+	return mode;
 }
 
 bool Channel::hasMode(unsigned int requestMode) const {

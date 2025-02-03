@@ -89,6 +89,9 @@ void Mode::execute(Client* sender, const Message& command, std::map<int, Client*
             sender->setOutBuffer(response);
             return;
     }
+    std::string response = ":" + server->getServerName() + " 324 " + sender->getNickname() + " " + channelName + " " + channel->getModeString() + "\r\n";
+    sender->setOutBuffer(response);
+    channel->broadcast(response, sender);
 }
 
 void Mode::modifyInviteOnlyMode(Channel* channel, MODEOPERATION operation){

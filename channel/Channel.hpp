@@ -49,6 +49,7 @@ class Channel {
 		void setChannelMode(unsigned int channelMode);
 		void unsetChannelMode(unsigned int requestMode);
 		void setServerName(const std::string& serverName);
+		std::string getModeString() const;
 
 
 	private:

@@ -64,7 +64,7 @@ void Auth::grantOperator(const std::string& userNickname, const std::string& cha
 	pk.userNickname = userNickname;
 	pk.channelName = channelName;
 		
-	authMap[pk] |= (OP | CHANNEL_MODE | KICK_POWER | INVITE_POWER | TOPIC_POWER);
+	authMap[pk] |= (OP);
 }
 
 void Auth::revokeOperator(const std::string& userNickname, const std::string& channelName) {
