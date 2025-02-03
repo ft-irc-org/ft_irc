@@ -12,7 +12,7 @@ void Ping::execute(Client* sender, const Message& command, std::map<int, Client*
 	(void) auth;
 	(void) server;
 	if (command.getParamCount() < 1) {
-		std::string response = ":localhost 461 " + sender->getNickname() + " PING :Not enough parameters\r\n";
+		std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " PING :Not enough parameters\r\n";
 		// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 		sender->setOutBuffer(response);
 		return;

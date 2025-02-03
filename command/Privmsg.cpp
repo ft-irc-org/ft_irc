@@ -11,7 +11,7 @@ void Privmsg::execute(Client* sender, const Message& command, std::map<int, Clie
 	(void) auth;
 	(void) server;
 	if (command.getParamCount() < 2) {
-		std::string response = ":localhost 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters\r\n";
+		std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters\r\n";
 		// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 		sender->setOutBuffer(response);
 		return;
@@ -24,7 +24,7 @@ void Privmsg::execute(Client* sender, const Message& command, std::map<int, Clie
 		(void) auth;
 		std::map<std::string, Channel*>::iterator it = channels.find(target);
 		if (it == channels.end()) {
-			std::string response = ":localhost 403 " + sender->getNickname() + " " + target + " :No such channel\r\n";
+			std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + target + " :No such channel\r\n";
 			// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 			sender->setOutBuffer(response);
 			return;
@@ -32,7 +32,7 @@ void Privmsg::execute(Client* sender, const Message& command, std::map<int, Clie
 
 		Channel* channel = it->second;
 		// if (!auth.hasPermission(sender->getNickname(), target, Auth::CHANNEL_MODE)) {
-		// 	std::string response = ":localhost 482 " + sender->getNickname() + " " + target + " :You're not channel operator :: PRIVMSG\r\n";
+		// 	std::string response = ":" + server->getServerName() + " 482 " + sender->getNickname() + " " + target + " :You're not channel operator :: PRIVMSG\r\n";
 		// 	send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 		// 	return;
 		// }

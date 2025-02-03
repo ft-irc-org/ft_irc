@@ -6,183 +6,131 @@ Mode::Mode() {
 Mode::~Mode() {
 }
 
-void Mode::execute(Client* sender, const Message& command, 
-                  std::map<int, Client*> &clients, 
-                  std::map<std::string, Channel*>& channels, 
-                  Auth &auth, ServerEventHandler *server) {
-	(void) clients;
-    (void) server;
-    if (command.getParamCount() < 1) {
-        return sendError(sender, "461 MODE :Not enough parameters");
-    }
+void Mode::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server){
+    (void)clients;
+    (void)server;
 
-    std::string target = command.getParam(0);
-    
-    if (command.getParamCount() == 1) {
-        handleModeQuery(sender, target, channels);
+    if (command.getParamCount() < 1) {
+        std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
+        sender->setOutBuffer(response);
         return;
     }
 
-    std::string modes = command.getParam(1);
-    std::string param = command.getParamCount() > 2 ? command.getParam(2) : "";
-
-    if (target[0] == '#' && (auth.hasPermission(sender->getNickname(), target, Auth::CHANNEL_MODE) || auth.isOperator(sender->getNickname(), target))) {
-        handleChannelMode(sender, target, modes, param, channels, auth);
-    }
-}
-
-void Mode::handleModeQuery(Client* sender, const std::string& target, 
-                          std::map<std::string, Channel*>& channels) {
-    if (target[0] == '#') {
-        std::map<std::string, Channel*>::iterator it = channels.find(target);
-        if (it == channels.end()) {
-            return sendError(sender, "403 " + target + " :No such channel");
-        }
-        
-        std::string response = std::string(":") + sender->getNickname() + " MODE " + target + " " + getModeString(it->second) + "\r\n";
-        // send(sender->getSocketFd(), response.c_str(), response.length(), 0);
+    std::string channelName = command.getParam(0);
+    if (channelName[0] != '#') {
+        std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n";
         sender->setOutBuffer(response);
-    } else {
-        sendError(sender, "502 :Cant change mode for other users");
+        return;
     }
-}
 
-void Mode::handleChannelMode(Client* sender, const std::string& channelName, const std::string& modes, const std::string& param, std::map<std::string, Channel*>& channels, Auth& auth) {
     std::map<std::string, Channel*>::iterator it = channels.find(channelName);
     if (it == channels.end()) {
-        return sendError(sender, "403 " + channelName + " :No such channel");
+        std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n";
+        sender->setOutBuffer(response);
+        return;
     }
 
-    Channel* channel = it->second;
-
-    if (!auth.hasPermission(sender->getNickname(), channelName, Auth::CHANNEL_MODE)) {
-        return sendError(sender, "482 " + channelName + " :You're not channel operator :: MODE");
+    Channel* channel = channels[channelName];
+    if (!auth.isOperator(sender->getNickname(), channelName) || !auth.hasPermission(sender->getNickname(), channelName, Auth::OP)) {
+        std::string response = ":" + server->getServerName() + " 482 " + sender->getNickname() + " " + channelName + " :You're not channel operator :: MODE\r\n";
+        sender->setOutBuffer(response);
+        return;
     }
 
-    bool adding = true;
-    std::string appliedModes;
-    std::string appliedParams;
-
-    for (std::string::const_iterator mode_it = modes.begin(); 
-         mode_it != modes.end(); ++mode_it) {
-        char mode = *mode_it;
-
-        if (mode == '+') {
-            adding = true;
-            continue;
-        }
-        if (mode == '-') {
-            adding = false;
-            continue;
-        }
-
-        switch (mode) {
-            case 'i': // invite-only
-                if (adding) {
-                    channel->setChannelMode(Channel::INVITE_ONLY);
-                } else {
-                    channel->unsetChannelMode(Channel::INVITE_ONLY);
-                }
-                appliedModes += mode;
-                break;
-
-            case 't': // topic restriction
-                if (adding) {
-                    channel->setChannelMode(Channel::TOPIC_RESTRICTED);
-                } else {
-                    channel->unsetChannelMode(Channel::TOPIC_RESTRICTED);
-                }
-                appliedModes += mode;
-                break;
-
-            case 'k': // channel key (password)
-                if (adding && param.empty()) {
-                    sendError(sender, "461 MODE +k :Need key parameter");
-                    continue;
-                }
-                if (adding) {
-                    channel->setPassword(param);
-                    channel->setChannelMode(Channel::PRIVATE);
-                } else {
-                    channel->setPassword("");
-                    channel->unsetChannelMode(Channel::PRIVATE);
-                }
-                appliedModes += mode;
-                if (adding) appliedParams = param;
-                break;
-
-            case 'o': // operator status
-                if (param.empty()) {
-                    sendError(sender, "461 MODE +o :Need nickname parameter");
-                    continue;
-                }
-                if (adding) {
-                    auth.grantOperator(param, channelName);
-                } else {
-                    auth.revokeOperator(param, channelName);
-                }
-                appliedModes += mode;
-                appliedParams = param;
-                break;
-
-            case 'l': // user limit
-                if (adding) {
-                    if (param.empty()) {
-                        sendError(sender, "461 MODE +l :Need limit parameter");
-                        continue;
-                    }
-                    // Convert string to integer
-                    int limit = 0;
-                    std::istringstream iss(param);
-                    if (!(iss >> limit) || limit <= 0) {
-                        sendError(sender, "461 MODE +l :Invalid limit parameter");
-                        continue;
-                    }
-                    channel->setUserLimit(limit);
-                    channel->setChannelMode(Channel::USER_LIMIT);
-                } else {
-                    channel->setUserLimit(0);
-                    channel->unsetChannelMode(Channel::USER_LIMIT);
-                }
-                appliedModes += mode;
-                if (adding) appliedParams = param;
-                break;
-
-            default:
-                sendError(sender, "472 " + std::string(1, mode) + " :Unknown mode");
-                break;
-        }
+    if (command.getParamCount() == 1) {
+        std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
+        sender->setOutBuffer(response);
+        return;
     }
 
-    // 변경된 모드가 있을 경우에만 브로드캐스트
-    if (!appliedModes.empty()) {
-        std::string notification = std::string(":") + sender->getNickname() + 
-                                 " MODE " + channelName + " " + 
-                                 (adding ? "+" : "-") + appliedModes;
-        
-        if (!appliedParams.empty()) {
-            notification += " " + appliedParams;
-        }
-        notification += "\r\n";
-        
-        channel->broadcast(notification, sender);
+    std::string mode = command.getParam(1);
+    if (mode[0] != '+' && mode[0] != '-') {
+        std::string response = ":" + server->getServerName() + " 472 " + sender->getNickname() + " " + channelName + " :Unknown MODE flag\r\n";
+        sender->setOutBuffer(response);
+        return;
+    }
+
+    MODEOPERATION operation = (mode[0] == '+') ? MODE_ADD : MODE_REMOVE;
+    mode = mode.substr(1);
+    
+    switch (mode[0]) {
+        case CAHNNELMODE_INVITE_ONLY:
+            modifyInviteOnlyMode(channel, operation);
+            break;
+        case CAHNNELMODE_TOPIC_RESTRICTED:
+            modifyTopicRestrictedMode(channel, operation);
+            break;
+        case CAHNNELMODE_KEY:
+            if (command.getParamCount() < 3) {
+                std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
+                sender->setOutBuffer(response);
+                return;
+            }
+            modifyKeyMode(channel, operation, command.getParam(2));
+            break;
+        case CAHNNELMODE_OPERATOR:
+            if (command.getParamCount() < 3) {
+                std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
+                sender->setOutBuffer(response);
+                return;
+            }
+            modifyOperatorMode(auth, channel, operation, command.getParam(2));
+            break;
+        case CAHNNELMODE_LIMIT:
+            if (command.getParamCount() < 3) {
+                std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
+                sender->setOutBuffer(response);
+                return;
+            }
+            modifyLimitMode(channel, operation, command.getParam(2));
+            break;
+        default:
+            std::string response = ":" + server->getServerName() + " 472 " + sender->getNickname() + " " + channelName + " :Unknown MODE flag\r\n";
+            sender->setOutBuffer(response);
+            return;
     }
 }
 
-std::string Mode::getModeString(Channel* channel) {
-	std::string modeString;
-	if (channel->getChannelMode() & Channel::INVITE_ONLY) {
-		modeString += "i";
-	}
-	if (channel->getChannelMode() & Channel::OPERATOR_PRIVILEGES) {
-		modeString += "o";
-	}
-	if (channel->getChannelMode() & Channel::TOPIC_RESTRICTED) {
-		modeString += "t";
-	}
-	if (channel->getChannelMode() & Channel::PRIVATE) {
-		modeString += "p";
-	}
-	return modeString;
+void Mode::modifyInviteOnlyMode(Channel* channel, MODEOPERATION operation){
+    if (operation == MODE_ADD) {
+        channel->setChannelMode(Channel::INVITE_ONLY);
+    } else {
+        channel->unsetChannelMode(Channel::INVITE_ONLY);
+    }
 }
 
+void Mode::modifyTopicRestrictedMode(Channel* channel, MODEOPERATION operation){
+    if (operation == MODE_ADD) {
+        channel->setChannelMode(Channel::TOPIC_RESTRICTED);
+    } else {
+        channel->unsetChannelMode(Channel::TOPIC_RESTRICTED);
+    }
+
+}
+void Mode::modifyKeyMode(Channel* channel, MODEOPERATION operation, const std::string& param){
+    if (operation == MODE_ADD) {
+        channel->setChannelMode(Channel::KEY_REQUIRED);
+        channel->setPassword(param);
+    } else {
+        channel->unsetChannelMode(Channel::KEY_REQUIRED);
+        channel->setPassword("");
+    }
+
+}
+void Mode::modifyOperatorMode(Auth& auth, Channel* channel, MODEOPERATION operation, const std::string& param){
+    if (operation == MODE_ADD) {
+        auth.grantOperator(param, channel->getChannelName());
+    } else {
+        auth.revokeOperator(param, channel->getChannelName());
+    }
+
+}
+void Mode::modifyLimitMode(Channel* channel, MODEOPERATION operation, const std::string& param){
+    if (operation == MODE_ADD) {
+        channel->setChannelMode(Channel::USER_LIMIT);
+        channel->setUserLimit(std::stold(param));
+    } else {
+        channel->unsetChannelMode(Channel::USER_LIMIT);
+        channel->setUserLimit(0);
+    }
+}

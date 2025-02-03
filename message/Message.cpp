@@ -59,3 +59,7 @@ void Message::parse(const std::string& rowMessage) {
         }
     }
 }
+
+void Message::addSource(const std::string& source) {
+    this->source = source;
+}

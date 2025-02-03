@@ -12,7 +12,7 @@ void Part::execute(Client* sender, const Message& command, std::map<int, Client*
     (void) auth; // 나갈 때 권한 위임하거나 해제하는 것은 없음
 
     if (command.getParamCount() < 1) {
-        sendError(sender, ":localhost 461 " + sender->getNickname() + " PART :Not enough parameters\r\n");
+        sendError(sender, ":" + server->getServerName() + " 461 " + sender->getNickname() + " PART :Not enough parameters\r\n");
         return;
     }
 
@@ -20,25 +20,25 @@ void Part::execute(Client* sender, const Message& command, std::map<int, Client*
     std::string nickname = sender->getNickname();
 
     if (channelName[0] != '#') {
-        sendError(sender, ":localhost 403 " + nickname + " " + channelName + " :No such channel\r\n");
+        sendError(sender, ":" + server->getServerName() + " 403 " + nickname + " " + channelName + " :No such channel\r\n");
         return;
     }
 
     std::map<std::string, Channel*>::iterator it = channels.find(channelName);
     if (it == channels.end()) {
-        sendError(sender, ":localhost 403 " + nickname + " " + channelName + " :No such channel\r\n");
+        sendError(sender, ":" + server->getServerName() + " 403 " + nickname + " " + channelName + " :No such channel\r\n");
         return;
     }
 
     Channel* channel = it->second;
     
     if (!channel->isMember(sender)) {
-        sendError(sender, ":localhost 442 " + nickname + " " + channelName + " :You're not on that channel\r\n");
+        sendError(sender, ":" + server->getServerName() + " 442 " + nickname + " " + channelName + " :You're not on that channel\r\n");
         return;
     }
 
 	// 3. 전체 포맷 재구성
-	std::string source = nickname + "!" + sender->getNickname() + "@localhost";
+	std::string source = nickname + "!" + sender->getNickname() + "@" + server->getServerName() + "";
     std::string partMessage = ":" + source + " PART :" + channelName + "\r\n";  
     
     // 파트하는 클라이언트에게 먼저 PART 메시지 전송

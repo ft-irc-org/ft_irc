@@ -30,10 +30,10 @@ void Whois::execute(Client* sender, const Message& command, std::map<int, Client
 		return;
 	}
 
-	std::string response = ":localhost 311 " + sender->getNickname() + " " + target->getNickname() + "\r\n";
+	std::string response = ":" + server->getServerName() + " 311 " + sender->getNickname() + " " + target->getNickname() + "\r\n";
 	// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 	sender->setOutBuffer(response);
-	response = ":localhost 318 " + sender->getNickname() + " " + target->getNickname() + " :End of /WHOIS list\r\n";
+	response = ":" + server->getServerName() + " 318 " + sender->getNickname() + " " + target->getNickname() + " :End of /WHOIS list\r\n";
 	// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
 	sender->setOutBuffer(response);
 }

@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(const ServerConfig &sc): config(sc){
+Server::Server(const ServerConfig &sc, const std::string &serverName): config(sc), serverName(serverName) {
 	std::cout << "Server created" << std::endl;
 	std::cout << "Server port : " << config.getPort() << std::endl;
 
@@ -113,7 +113,6 @@ void Server::acceptClient(){
 
 	// add client socket to kqueue
 	addReadEvent(clientSocketFd);
-	addWriteEvent(clientSocketFd);
 
 	clients[clientSocketFd] = new Client(clientSocketFd, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
 	std::cout << "New client connected : " << clients[clientSocketFd]->getIp() << ":" << clients[clientSocketFd]->getPort() << std::endl;
@@ -128,7 +127,7 @@ void Server::handleClientRead(int clientSocketFd) {
     if (bytesRead > 0) {
         Client* client = clients[clientSocketFd];
         std::string newData(buffer, bytesRead);
-        client->setBuffer(client->getBuffer() + newData);  // 기존 buffer에 추가
+        client->setBuffer(newData);  // 기존 buffer에 추가
         std::string& receivedData = client->getBuffer();
         
         size_t pos = 0;
@@ -136,6 +135,8 @@ void Server::handleClientRead(int clientSocketFd) {
             std::string message = receivedData.substr(0, pos);
 			std::cout << "Received message from " << client->getIp() << ":" << client->getPort() << " : " << message << std::endl;
             Message msg(message);
+			std::string source = client->getIp() + ":" + std::to_string(client->getPort());
+			msg.addSource(source); // source 추가
             dispatcher->dispatch(client, msg);
             receivedData = receivedData.substr(pos + 2);  // 처리된 메시지 제거
         }
@@ -152,6 +153,10 @@ void Server::handleClientRead(int clientSocketFd) {
         clients.erase(clientSocketFd);
         close(clientSocketFd);
     }
+}
+
+const std::string &Server::getServerName() {
+	return serverName;
 }
 
 void Server::addReadEvent(int clientFd) {

@@ -14,7 +14,6 @@ class Channel {
 			INVITE_ONLY = 1 << 0,
 			TOPIC_RESTRICTED = 1 << 1,
 			KEY_REQUIRED = 1 << 2,
-			PRIVATE = 1 << 3,
 			USER_LIMIT = 1 << 4,
 			OPERATOR_PRIVILEGES = 1 << 5
 		} ChannelMode;
@@ -49,6 +48,7 @@ class Channel {
 
 		void setChannelMode(unsigned int channelMode);
 		void unsetChannelMode(unsigned int requestMode);
+		void setServerName(const std::string& serverName);
 
 
 	private:
@@ -60,6 +60,7 @@ class Channel {
 		unsigned int userCount;
 		unsigned int userLimit;
 		std::string password;
+		std::string serverName;
 
 		std::map<int, Client *> users;
 };

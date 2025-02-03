@@ -27,18 +27,21 @@ void Dispatcher::dispatch(Client* client, const Message& command) {
 		return ;
 	}
 	if (!client->isAuthenticated() && command.getVerb() != "PASS" && command.getVerb() != "NICK" && command.getVerb() != "USER") {
-		std::string response = ":localhost 451 " + client->getNickname() + " :You have not registered\r\n";
+		std::string response = ":" + server->getServerName() + " 451 " + client->getNickname() + " :You have not registered\r\n";
 		// send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		server->addWriteEvent(client->getSocketFd());
 		client->setOutBuffer(response);
 		return;
 	}
 
 	std::map<std::string, CommandHandler*>::iterator it = handlers.find(command.getVerb());
 	if (it != handlers.end()) {
+		server->addWriteEvent(client->getSocketFd());
 		it->second->execute(client, command, clients, channels, auth, server);
 	} else {
-		std::string response = ":localhost 421 " + client->getNickname() + " :Unknown command\r\n";
+		std::string response = ":" + server->getServerName() + " 421 " + client->getNickname() + " :Unknown command\r\n";
 		// send(client->getSocketFd(), response.c_str(), response.size(), 0);
+		server->addWriteEvent(client->getSocketFd());
 		client->setOutBuffer(response);
 	}
 }

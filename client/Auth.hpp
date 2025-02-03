@@ -13,10 +13,6 @@ class Auth {
 		typedef enum Permission {
 			NONE = 0,
 			OP = 1 << 0,		       // 채널 운영자 (MODE +o)
-			CHANNEL_MODE = 1 << 1,     // 채널 모드 변경 권한
-			KICK_POWER = 1 << 2,       // KICK 명령어 사용 권한
-			INVITE_POWER = 1 << 3,     // INVITE 명령어 사용 권한
-			TOPIC_POWER = 1 << 4       // TOPIC 명령어 사용 권한
 		} Permission;
 
 		Auth();

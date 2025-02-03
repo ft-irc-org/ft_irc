@@ -15,10 +15,12 @@ class Message {
 		const std::vector<std::string>& getParams() const; // 파람 전체를 반환 (ex. ["#channel", "message"], ["localhost"], ["user1", "user2"])
 
 		const std::string& getParam(size_t index) const; // 파람 중 index번째를 반환 (ex. 0 -> "#channel", 1 -> "message")
+		void addSource(const std::string& source); // source 추가
 
 		size_t getParamCount() const; // 파람의 개수를 반환
 
 	private:
+		std::string source; // receive -> null, send -> server name broadcasting. broadcast 닉네임!유저네임@localhost server privmsg 전체유저리스트, channel privmsg 채널유저리스트
 		std::string verb;
 		std::vector<std::string> params;
 

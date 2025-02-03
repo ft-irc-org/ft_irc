@@ -72,7 +72,7 @@ Client* Channel::searchMember(const std::string targeName) const {
 
 void Channel::broadcast(const std::string& message, Client* sender) {
 	if (!isMember(sender)) {
-		std::string err = ":localhost 442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n";
+		std::string err = ":" + serverName + " 442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n";
 		sender->setOutBuffer(err);
 		return;
 	}
@@ -87,6 +87,8 @@ void Channel::broadcast(const std::string& message, Client* sender) {
 bool Channel::hasMode(unsigned int requestMode) const {
 	return (channelMode & requestMode) != 0;
 }
+
+void Channel::setServerName(const std::string& serverName) { this->serverName = serverName; }
 
 void Channel::setPassword(const std::string& password) { this->password = password; }
 const std::string& Channel::getPassword() const { return password; }

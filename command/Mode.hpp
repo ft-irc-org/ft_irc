@@ -11,11 +11,24 @@ class Mode : public CommandHandler {
 		void execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server);
 
 	private:
-	void handleChannelMode(Client* sender, const std::string& channelName, const std::string& modes, const std::string& param, std::map<std::string, Channel*>& channels, Auth& auth);
+		enum MODEOPERATION {
+			MODE_ADD = '+',
+			MODE_REMOVE = '-'
+		};
 
-	void handleModeQuery(Client* sender, const std::string& target, std::map<std::string, Channel*>& channels);
+		enum CHANNELFLAGS {
+			CAHNNELMODE_INVITE_ONLY = 'i',
+			CAHNNELMODE_TOPIC_RESTRICTED = 't',
+			CAHNNELMODE_KEY = 'k',
+			CAHNNELMODE_OPERATOR = 'o',
+			CAHNNELMODE_LIMIT = 'l'
+		};
 
-	std::string getModeString(Channel* channel);
+		void modifyInviteOnlyMode(Channel* channel, MODEOPERATION operation);
+		void modifyTopicRestrictedMode(Channel* channel, MODEOPERATION operation);
+		void modifyKeyMode(Channel* channel, MODEOPERATION operation, const std::string& param);
+		void modifyOperatorMode(Auth& auth, Channel* channel, MODEOPERATION operation, const std::string& param);
+		void modifyLimitMode(Channel* channel, MODEOPERATION operation, const std::string& param);
 };
 
 #endif

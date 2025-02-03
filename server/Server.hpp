@@ -27,16 +27,15 @@ class Dispatcher;
 
 class Server : public ServerEventHandler {
 	public:
-        Server(const ServerConfig& config);
+        Server(const ServerConfig& config, const std::string& serverName);
         ~Server();
 
         void start();
 
+        void addWriteEvent(int clientFd);
         void removeReadEvent(int clientFd);
         void removeWriteEvent(int clientFd);
-
-        std::map<std::string, Channel*>& getChannels();
-        std::map<int, Client*>& getClients();
+        const std::string &getServerName();
 
     private:
         ServerConfig config;
@@ -44,6 +43,7 @@ class Server : public ServerEventHandler {
         std::map<int, Client*> clients; // fd, client
         Dispatcher* dispatcher; // 포인터로 변경
 
+        const std::string serverName;
         uintptr_t serverSocketFd;
         int kqueueFd;
         struct kevent events[MAX_CLIENTS];
@@ -52,7 +52,6 @@ class Server : public ServerEventHandler {
         void handleClientRead(int clientFd);
         void handleClientWrite(int clientFd);
 
-        void addWriteEvent(int clientFd);
         void addReadEvent(int clientFd);
 
         int initSocket();
