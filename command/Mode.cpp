@@ -6,27 +6,44 @@ Mode::Mode() {
 Mode::~Mode() {
 }
 
+bool Mode::isParamCountValid(Client* sender, const Message& command, ServerEventHandler *server, int minRequiredParams, const std::string& errorMessage) {
+	if (command.getParamCount() < minRequiredParams) {
+		sendError(sender,  ":" + server->getServerName() + " 461 " + sender->getNickname() + errorMessage);
+        return false;
+    }
+	return true;
+}
+
+bool Mode::verifyChannelSyntax(Client* sender, ServerEventHandler *server, std::string& channelName, const std::string& errorMessage) {
+    if (channelName[0] != '#') {
+		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
+        return false;
+    }
+	return true;
+}
+
+bool Mode::validateChannelExists(Client* sender, std::map<std::string, Channel*>& channels, ServerEventHandler *server, std::string& channelName, const std::string& errorMessage) {
+	std::map<std::string, Channel*>::iterator it = channels.find(channelName);
+	if (it == channels.end()) {
+		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
+		return;
+	}
+}
+
 void Mode::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server){
     (void)clients;
     (void)server;
 
-    if (command.getParamCount() < 1) {
-        std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
-        sender->setOutBuffer(response);
+    if (isParamCountValid(sender, command, server, 1, " MODE :Not enough parameters\r\n") == false) {
         return;
     }
 
     std::string channelName = command.getParam(0);
-    if (channelName[0] != '#') {
-        std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n";
-        sender->setOutBuffer(response);
-        return;
-    }
+	if (verifyChannelSyntax(sender, server, channelName, " :No such channel\r\n") == false) {
+		return ;
+	}
 
-    std::map<std::string, Channel*>::iterator it = channels.find(channelName);
-    if (it == channels.end()) {
-        std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n";
-        sender->setOutBuffer(response);
+    if (validateChannelExists(sender, channels, server, channelName, " :No such channel\r\n") == false) {
         return;
     }
 

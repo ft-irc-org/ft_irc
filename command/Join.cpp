@@ -6,31 +6,38 @@ Join::Join() {
 Join::~Join() {
 }
 
+bool Join::isParamCountValid(Client* sender, const Message& command, ServerEventHandler *server, int minRequiredParams, const std::string& errorMessage) {
+	if (command.getParamCount() < minRequiredParams) {
+		sendError(sender,  ":" + server->getServerName() + " 461 " + sender->getNickname() + errorMessage);
+        return false;
+    }
+	return true;
+}
+
+bool Join::verifyChannelSyntax(Client* sender, ServerEventHandler *server, std::string& channelName, const std::string& errorMessage) {
+    if (channelName[0] != '#') {
+		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
+        return false;
+    }
+	return true;
+}
+
 void Join::execute(Client* sender, const Message& command, 
                   std::map<int, Client*> &clients, 
                   std::map<std::string, Channel*>& channels, 
                   Auth &auth, ServerEventHandler *server) {
     (void)clients;
     (void)server;
-    
-    if (command.getParamCount() < 1) {
-        std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + 
-                             " JOIN :Not enough parameters\r\n";
-        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-        sender->setOutBuffer(response);
-        return;
-    }
+
+    if (isParamCountValid(sender, command, server, 1, " JOIN :Not enough parameters\r\n") == false) {
+		return ;
+	}
 
     std::string channelName = command.getParam(0);
     std::string password = command.getParamCount() > 1 ? command.getParam(1) : "";
 
-    if (channelName[0] != '#') {
-        std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + 
-                             " " + channelName + " :Wrong format : Wrong channel name\r\n";
-        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-        sender->setOutBuffer(response);
-        return;
-    }
+   	if (verifyChannelSyntax(sender, server, channelName, " :Wrong format : Wrong channel name\r\n") == false)
+		return ;
 
     std::map<std::string, Channel*>::iterator it = channels.find(channelName);
     Channel* channel;
