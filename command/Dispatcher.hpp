@@ -23,7 +23,7 @@
 # include "User.hpp"
 # include "Whois.hpp"
 # include "Part.hpp"
-
+# include "Topic.hpp"
 # include "../server/Server.hpp"
 
 // class Server;

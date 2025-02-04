@@ -13,6 +13,7 @@ Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, 
 	registerHandler("USER", new User());
 	registerHandler("WHOIS", new Whois());
 	registerHandler("PART", new Part());
+	registerHandler("TOPIC", new Topic());
 }
 
 Dispatcher::~Dispatcher() {
@@ -37,6 +38,8 @@ void Dispatcher::dispatch(Client* client, const Message& command) {
 	std::map<std::string, CommandHandler*>::iterator it = handlers.find(command.getVerb());
 	if (it != handlers.end()) {
 		server->addWriteEvent(client->getSocketFd());
+		std::cout << "Sender: " << client->getNickname() << std::endl;
+		std::cout << "Command: " << command.getVerb() << std::endl;
 		it->second->execute(client, command, clients, channels, auth, server);
 	} else {
 		std::string response = ":" + server->getServerName() + " 421 " + client->getNickname() + " :Unknown command\r\n";
