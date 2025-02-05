@@ -6,14 +6,27 @@ Privmsg::Privmsg() {
 Privmsg::~Privmsg() {
 }
 
+bool Privmsg::isParamCountValid(Client* sender, const Message& command, ServerEventHandler *server, int minRequiredParams, const std::string& errorMessage) {
+	if (command.getParamCount() < minRequiredParams) {
+		sendError(sender,  ":" + server->getServerName() + " 461 " + sender->getNickname() + errorMessage);
+        return false;
+    }
+	return true;
+}
+
+bool Privmsg::validateChannelExists(Client* sender, std::map<std::string, Channel*>& channels, ServerEventHandler *server, std::string& channelName, const std::string& errorMessage) {
+	std::map<std::string, Channel*>::iterator it = channels.find(channelName);
+	if (it == channels.end()) {
+		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
+		return;
+	}
+}
+
 void Privmsg::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server){
 	(void) clients;
 	(void) auth;
 	(void) server;
-	if (command.getParamCount() < 2) {
-		std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters\r\n";
-		// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-		sender->setOutBuffer(response);
+	if (isParamCountValid(sender, command, server, 2, " PRIVMSG :Not enough parameters\r\n") == false) {
 		return;
 	}
 
@@ -23,10 +36,7 @@ void Privmsg::execute(Client* sender, const Message& command, std::map<int, Clie
 	if (target[0] == '#') {
 		(void) auth;
 		std::map<std::string, Channel*>::iterator it = channels.find(target);
-		if (it == channels.end()) {
-			std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + target + " :No such channel\r\n";
-			// send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-			sender->setOutBuffer(response);
+		if (validateChannelExists(sender, channels, server, target, " :No such channel\r\n") == false) {
 			return;
 		}
 
