@@ -6,13 +6,19 @@ Pass::Pass() {
 Pass::~Pass() {
 }
 
+bool Pass::isParamCountValid(Client* sender, const Message& command, ServerEventHandler *server, int minRequiredParams, const std::string& errorMessage) {
+	if (command.getParamCount() < minRequiredParams) {
+		sendError(sender,  ":" + server->getServerName() + " 461 " + sender->getNickname() + errorMessage);
+        return false;
+    }
+	return true;
+}
+
 void Pass::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
 	(void) channels;
 	(void) clients;
 
-	if (command.getParamCount() < 1) {
-		// std::cout << "command.getParamCount() < 1" << std::endl;
-		sendError(sender, "461 " + sender->getNickname() + " PASS :Not enough parameters");
+	if (isParamCountValid(sender, command, server, 1, " PASS :Not enough parameters") == false) {
 		return;
 	}
 

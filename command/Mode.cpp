@@ -14,7 +14,7 @@ bool Mode::isParamCountValid(Client* sender, const Message& command, ServerEvent
 	return true;
 }
 
-bool Mode::verifyChannelSyntax(Client* sender, ServerEventHandler *server, std::string& channelName, const std::string& errorMessage) {
+bool Mode::verifyChannelSyntax(Client* sender, ServerEventHandler *server, const std::string& channelName, const std::string& errorMessage) {
     if (channelName[0] != '#') {
 		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
         return false;
@@ -34,7 +34,7 @@ void Mode::execute(Client* sender, const Message& command, std::map<int, Client*
     (void)clients;
     (void)server;
 
-    if (isParamCountValid(sender, command, server, 1, " MODE :Not enough parameters\r\n") == false) {
+	if (isParamCountValid(sender, command, server, 1, " MODE :Not enough parameters\r\n") == false) {
         return;
     }
 
@@ -54,11 +54,9 @@ void Mode::execute(Client* sender, const Message& command, std::map<int, Client*
         return;
     }
 
-    if (command.getParamCount() == 1) {
-        std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
-        sender->setOutBuffer(response);
-        return;
-    }
+   if (isParamCountValid(sender, command, server, 2, " MODE :Not enough parameters\r\n") == false) {
+		return;
+	}
 
     std::string mode = command.getParam(1);
     if (mode[0] != '+' && mode[0] != '-') {
@@ -78,27 +76,21 @@ void Mode::execute(Client* sender, const Message& command, std::map<int, Client*
             modifyTopicRestrictedMode(channel, operation);
             break;
         case CAHNNELMODE_KEY:
-            if (command.getParamCount() < 3) {
-                std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
-                sender->setOutBuffer(response);
-                return;
-            }
+			if (isParamCountValid(sender, command, server, 3, " MODE :Not enough parameters\r\n") == false) {
+				return;
+			}
             modifyKeyMode(channel, operation, command.getParam(2));
             break;
         case CAHNNELMODE_OPERATOR:
-            if (command.getParamCount() < 3) {
-                std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
-                sender->setOutBuffer(response);
-                return;
-            }
+            if (isParamCountValid(sender, command, server, 3, " MODE :Not enough parameters\r\n") == false) {
+				return;
+			}
             modifyOperatorMode(auth, channel, operation, command.getParam(2));
             break;
         case CAHNNELMODE_LIMIT:
-            if (command.getParamCount() < 3) {
-                std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " MODE :Not enough parameters\r\n";
-                sender->setOutBuffer(response);
-                return;
-            }
+            if (isParamCountValid(sender, command, server, 3, " MODE :Not enough parameters\r\n") == false) {
+				return;
+			}
             modifyLimitMode(channel, operation, command.getParam(2));
             break;
         default:
