@@ -14,7 +14,7 @@ bool Join::isParamCountValid(Client* sender, const Message& command, ServerEvent
 	return true;
 }
 
-bool Join::verifyChannelSyntax(Client* sender, ServerEventHandler *server, std::string& channelName, const std::string& errorMessage) {
+bool Join::verifyChannelSyntax(Client* sender, ServerEventHandler *server, const std::string& channelName, const std::string& errorMessage) {
     if (channelName[0] != '#') {
 		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
         return false;
@@ -22,12 +22,45 @@ bool Join::verifyChannelSyntax(Client* sender, ServerEventHandler *server, std::
 	return true;
 }
 
-void Join::execute(Client* sender, const Message& command, 
-                  std::map<int, Client*> &clients, 
-                  std::map<std::string, Channel*>& channels, 
+Channel* Join::createChannel(Client* sender, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server, std::string& channelName) {
+	Channel* channel;
+	channel = new Channel(-1, channelName); // fd는 -1로 설정하면 자동으로 올라가게
+	channels[channelName] = channel;
+	auth.grantOperator(sender->getNickname(), channelName); // 첫 유저는 operator
+	auth.grantPermission(sender->getNickname(), channelName, Auth::OP);
+	channel->setServerName(server->getServerName());
+	return channel;
+}
+
+bool Join::checkInviteOnlyAccess(Client* sender, Auth &auth, ServerEventHandler *server, const std::string& channelName) {
+	if (!auth.hasPermission(sender->getNickname(), channelName, Auth::OP)) {
+		sendError(sender,  ":" + server->getServerName() + " 473 " + sender->getNickname() + " " + channelName + " :Cannot join channel (+i)\r\n");
+		return false;
+	}
+	return true;
+}
+
+bool Join::checkChannelPassword(Client* sender, ServerEventHandler *server, Channel* channel, const std::string& password, const std::string& channelName) {
+	if (password != channel->getPassword()) {
+		sendError(sender, ":" + server->getServerName() + " 475 " + sender->getNickname() + " " + channelName + " :Cannot join channel (+k)\r\n");
+		return false;
+	}
+	return true;
+}
+
+bool Join::checkUserLimit(Client* sender, ServerEventHandler *server, Channel* channel, const std::string& channelName) {
+	if (channel->getUserCount() >= channel->getUserLimit()) {
+		sendError(sender, ":" + server->getServerName() + " 471 " + sender->getNickname() + " " + channelName + " :Cannot join channel (+l)\r\n");
+		return false;
+	}
+	return true;
+}
+
+void Join::execute(Client* sender, const Message& command,
+                  std::map<int, Client*> &clients,
+                  std::map<std::string, Channel*>& channels,
                   Auth &auth, ServerEventHandler *server) {
     (void)clients;
-    (void)server;
 
     if (isParamCountValid(sender, command, server, 1, " JOIN :Not enough parameters\r\n") == false) {
 		return ;
@@ -43,46 +76,26 @@ void Join::execute(Client* sender, const Message& command,
     Channel* channel;
     
     if (it == channels.end()) {
-        // 새로운 채널 생성
-        channel = new Channel(-1, channelName); // fd는 -1로 설정하면 자동으로 올라가게
-        channels[channelName] = channel;
-        auth.grantOperator(sender->getNickname(), channelName); // 첫 유저는 operator
-        auth.grantPermission(sender->getNickname(), channelName, Auth::OP);
-        channel->setServerName(server->getServerName());
+        channel = createChannel(sender, channels, auth, server, channelName);
     } else {
         channel = it->second;
 
         // invite-only 모드 체크
         if (channel->getChannelMode() & Channel::INVITE_ONLY) {
-            if (!auth.hasPermission(sender->getNickname(), channelName, Auth::OP)) {
-                std::string response = ":" + server->getServerName() + " 473 " + sender->getNickname() + 
-                                     " " + channelName + " :Cannot join channel (+i)\r\n";
-                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-                sender->setOutBuffer(response);
-                return;
-            }
+			if (checkInviteOnlyAccess(sender, auth, server, channelName) == false)
+				return ;
         }
 
         // 비밀번호 체크
         if (!channel->getPassword().empty()) {
-            if (password != channel->getPassword()) {
-                std::string response = ":" + server->getServerName() + " 475 " + sender->getNickname() + 
-                                     " " + channelName + " :Cannot join channel (+k)\r\n";
-                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-                sender->setOutBuffer(response);
-                return;
-            }
+            if (checkChannelPassword(sender, server, channel, password, channelName) == false)
+				return ;
         }
 
         // user limit 체크
         if (channel->getChannelMode() & Channel::USER_LIMIT) {
-            if (channel->getUserCount() >= channel->getUserLimit()) {
-                std::string response = ":" + server->getServerName() + " 471 " + sender->getNickname() + 
-                                     " " + channelName + " :Cannot join channel (+l)\r\n";
-                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-                sender->setOutBuffer(response);
-                return;
-            }
+            if (checkUserLimit(sender, server, channel, channelName) == false)
+				return ;
         }
     }
     
