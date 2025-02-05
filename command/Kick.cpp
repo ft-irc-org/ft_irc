@@ -14,7 +14,7 @@ bool Kick::isParamCountValid(Client* sender, const Message& command, ServerEvent
 	return true;
 }
 
-bool Kick::verifyChannelSyntax(Client* sender, ServerEventHandler *server, std::string& channelName, const std::string& errorMessage) {
+bool Kick::verifyChannelSyntax(Client* sender, ServerEventHandler *server, const std::string& channelName, const std::string& errorMessage) {
 	if (channelName[0] != '#') {
 		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
 		return false;
