@@ -24,6 +24,7 @@
 # include "Whois.hpp"
 # include "Part.hpp"
 # include "Topic.hpp"
+# include "Invite.hpp"
 # include "../server/Server.hpp"
 
 // class Server;

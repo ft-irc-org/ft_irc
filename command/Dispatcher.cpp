@@ -14,6 +14,7 @@ Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, 
 	registerHandler("WHOIS", new Whois());
 	registerHandler("PART", new Part());
 	registerHandler("TOPIC", new Topic());
+	registerHandler("INVITE", new Invite());
 }
 
 Dispatcher::~Dispatcher() {
