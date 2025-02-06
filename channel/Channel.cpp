@@ -2,11 +2,11 @@
 
 int Channel::nextFd = 0;
 
-Channel::Channel() : channelName(""), topic(""), channelMode(0), userCount(0), userLimit(0), password("")  {
+Channel::Channel() : channelName(""), topic(""), topicSetter(""), topicTime(0), channelMode(0), userCount(0), userLimit(0), password("")  {
 	channelFd = nextFd++;
 }
 
-Channel::Channel(int fd, const std::string& channelName) : channelName(channelName), topic(""), channelMode(0), userCount(0), userLimit(0), password("") {
+Channel::Channel(int fd, const std::string& channelName) : channelName(channelName), topic(""), topicSetter(""), topicTime(0), channelMode(0), userCount(0), userLimit(0), password("") {
 	if (fd == -1) {
 		channelFd = nextFd++;
 	} else {
@@ -23,6 +23,8 @@ Channel::~Channel() {
 int Channel::getChannelFd() const { return channelFd; }
 const std::string& Channel::getChannelName() const { return channelName; }
 const std::string& Channel::getTopic() const { return topic; }
+const std::string& Channel::getTopicSetter() const { return topicSetter; }
+time_t Channel::getTopicTime() const { return topicTime; }
 unsigned int Channel::getChannelMode() const { return channelMode; }
 unsigned int Channel::getUserLimit() const { return userLimit; }
 unsigned int Channel::getUserCount() const {
@@ -38,7 +40,11 @@ bool Channel::isOperator(Client *client) const {
 }
 void Channel::setChannelFd(int channelFd) { this->channelFd = channelFd; }
 void Channel::setChannelName(const std::string& channelName) { this->channelName = channelName; }
-void Channel::setTopic(const std::string& topic) { this->topic = topic; }
+void Channel::setTopic(const std::string& newTopic, const std::string& setter) {         
+	this->topic = newTopic;
+    this->topicSetter = setter;
+    this->topicTime = time(NULL);; 
+}
 void Channel::setUserLimit(unsigned int userLimit) { this->userLimit = userLimit; }
 void Channel::setChannelMode(unsigned int requestMode) {
 	if (requestMode == 0){

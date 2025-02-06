@@ -90,9 +90,24 @@ void Join::execute(Client* sender, const Message& command,
     sender->setCurrentChannel(channelName);
 
     // Topic 정보 전송
-    if (!channel->getTopic().empty()) {
-        response = ":" + server->getServerName() + " 332 " + sender->getNickname() + " " + channelName + " :" + channel->getTopic() + "\r\n";
-        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+    if (channel->getTopic().empty()) {
+        // topic이 없을 때 RPL_NOTOPIC (331) 전송
+        response = ":" + server->getServerName() + " 331 " + 
+                sender->getNickname() + " " + channelName + 
+                " :No topic is set\r\n";
         sender->setOutBuffer(response);
+    } else {
+        // topic이 있을 때 RPL_TOPIC (332) 전송
+        response = ":" + server->getServerName() + " 332 " + 
+                sender->getNickname() + " " + channelName + 
+                " :" + channel->getTopic() + "\r\n";
+        sender->setOutBuffer(response);
+        
+        // RPL_TOPICWHOTIME (333) 전송
+        std::string whoTimeMsg = ":" + server->getServerName() + " 333 " + 
+                                sender->getNickname() + " " + channelName + " " +
+                                channel->getTopicSetter() + " " + 
+                                std::to_string(channel->getTopicTime()) + "\r\n";
+        sender->setOutBuffer(whoTimeMsg);
     }
 }

@@ -25,6 +25,9 @@ class Channel {
 		int getChannelFd() const;
 		const std::string& getChannelName() const;
 		const std::string& getTopic() const;
+		const std::string& getTopicSetter() const;
+    	time_t getTopicTime() const;
+    
 		const std::string& getPassword() const;
 		unsigned int getChannelMode() const;
 		unsigned int getUserCount() const;
@@ -33,7 +36,7 @@ class Channel {
 
 		void setChannelFd(int channelFd);
 		void setChannelName(const std::string& channelName);
-		void setTopic(const std::string& topic);
+    	void setTopic(const std::string& newTopic, const std::string& setter);
 		void setPassword(const std::string& password);
 		void setUserLimit(unsigned int userLimit);
 
@@ -57,6 +60,8 @@ class Channel {
 		int channelFd;
 		std::string channelName;
 		std::string topic;
+	    std::string topicSetter;
+    	time_t topicTime;
 		unsigned int channelMode;
 		unsigned int userCount;
 		unsigned int userLimit;
