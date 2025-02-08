@@ -7,8 +7,6 @@ class Join : public CommandHandler {
 	public:
 		Join();
 		~Join();
-		// 그냥 상속으로 빼도 될 것 같은 함수들
-		bool verifyChannelSyntax(Client* sender, ServerEventHandler *server, const std::string& channelName, const std::string& errorMessage);
 
 		// 이 명령어에만 사용이 가능한 함수들
 		Channel* createChannel(Client* sender, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server, std::string& channelName);

@@ -6,14 +6,6 @@ Join::Join() {
 Join::~Join() {
 }
 
-bool Join::verifyChannelSyntax(Client* sender, ServerEventHandler *server, const std::string& channelName, const std::string& errorMessage) {
-    if (channelName[0] != '#') {
-		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
-        return false;
-    }
-	return true;
-}
-
 Channel* Join::createChannel(Client* sender, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server, std::string& channelName) {
 	Channel* channel;
 	channel = new Channel(-1, channelName); // fd는 -1로 설정하면 자동으로 올라가게
@@ -61,7 +53,7 @@ void Join::execute(Client* sender, const Message& command,
     std::string channelName = command.getParam(0);
     std::string password = command.getParamCount() > 1 ? command.getParam(1) : "";
 
-   	if (verifyChannelSyntax(sender, server, channelName, " :Wrong format : Wrong channel name\r\n") == false)
+   	if (verifyChannelSyntax(sender, server, channelName, "403", " :Wrong format : Wrong channel name\r\n") == false)
 		return ;
 
     std::map<std::string, Channel*>::iterator it = channels.find(channelName);
