@@ -13,7 +13,8 @@ class Join : public CommandHandler {
 		bool checkInviteOnlyAccess(Client* sender, Auth &auth, ServerEventHandler *server, const std::string& channelName);
 		bool checkChannelPassword(Client* sender, ServerEventHandler *server, Channel* channel, const std::string& password, const std::string& channelName);
 		bool checkUserLimit(Client* sender, ServerEventHandler *server, Channel* channel, const std::string& channelName);
-
+		void processChannelJoin(Client* sender, Auth &auth, Channel* channel, const std::string& channelName);
+		void sendChannelTopic(Client* sender, ServerEventHandler *server, Channel* channel, const std::string& channelName);
 		void execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server);
 };
 

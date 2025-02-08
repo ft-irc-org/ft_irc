@@ -40,6 +40,25 @@ bool Join::checkUserLimit(Client* sender, ServerEventHandler *server, Channel* c
 	return true;
 }
 
+void Join::processChannelJoin(Client* sender, Auth &auth, Channel* channel, const std::string& channelName) {
+    channel->addMember(sender);
+    std::string response = sender->getNickname() + " has joined ";
+    channel->broadcast(response, sender);
+	// 기존 권한이 없을 때만 NONE 권한 추가
+    if (auth.isNoob(sender->getNickname())) {
+        auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
+    }
+    sender->setCurrentChannel(channelName);
+}
+
+void sendChannelTopic(Client* sender, ServerEventHandler *server, Channel* channel, const std::string& channelName) {
+	if (!channel->getTopic().empty()) {
+        std::string response = ":" + server->getServerName() + " 332 " + sender->getNickname() + " " + channelName + " :" + channel->getTopic() + "\r\n";
+        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+        sender->setOutBuffer(response);
+    }
+}
+
 void Join::execute(Client* sender, const Message& command,
                   std::map<int, Client*> &clients,
                   std::map<std::string, Channel*>& channels,
@@ -82,21 +101,11 @@ void Join::execute(Client* sender, const Message& command,
 				return ;
         }
     }
-    
-    // 채널 참가
-    channel->addMember(sender);
-    std::string response = sender->getNickname() + " has joined ";
-    channel->broadcast(response, sender);
-	// 기존 권한이 없을 때만 NONE 권한 추가
-    if (auth.isNoob(sender->getNickname())) {
-        auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
-    }
-    sender->setCurrentChannel(channelName);
+
+	// 채널 참가
+	processChannelJoin(sender, auth, channel, channelName);
 
     // Topic 정보 전송
-    if (!channel->getTopic().empty()) {
-        response = ":" + server->getServerName() + " 332 " + sender->getNickname() + " " + channelName + " :" + channel->getTopic() + "\r\n";
-        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-        sender->setOutBuffer(response);
-    }
+	sendChannelTopic(sender, server, channel, channelName);
+    
 }
