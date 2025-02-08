@@ -13,7 +13,7 @@
 
 class CommandHandler {
 	public:
-		virtual ~CommandHandler() {};
+		virtual ~CommandHandler() {}
 		virtual void execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) = 0;
 		void sendError(Client* client, const std::string& error) {
 			std::string response = error;
@@ -34,6 +34,31 @@ class CommandHandler {
                 close(fd);
             }
         }
+
+		bool isParamCountValid(Client* sender, const Message& command, ServerEventHandler *server, int minRequiredParams, const std::string& errorCode, const std::string& errorMessage) {
+			if (command.getParamCount() < minRequiredParams) {
+				sendError(sender,  ":" + server->getServerName() + " " + errorCode + " " + sender->getNickname() + errorMessage);
+				return false;
+			}
+			return true;
+		}
+		
+		bool verifyChannelSyntax(Client* sender, ServerEventHandler *server, const std::string& channelName, const std::string& errorCode, const std::string& errorMessage) {
+			if (channelName[0] != '#') {
+				sendError(sender, ":" + server->getServerName() + " " + errorCode + " " + sender->getNickname() + " " + channelName + errorMessage);
+				return false;
+			}
+			return true;
+		}
+
+		bool validateChannelExists(Client* sender, std::map<std::string, Channel*>& channels, ServerEventHandler *server, std::string& channelName, const std::string& errorCode, const std::string& errorMessage) {
+			std::map<std::string, Channel*>::iterator it = channels.find(channelName);
+			if (it == channels.end()) {
+				sendError(sender, ":" + server->getServerName() + " " + errorCode + " " + sender->getNickname() + " " + channelName + errorMessage);
+				return false;
+			}
+			return true;
+		}
 };
 
 #endif

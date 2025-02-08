@@ -6,19 +6,11 @@ Whois::Whois() {
 Whois::~Whois() {
 }
 
-bool Whois::isParamCountValid(Client* sender, const Message& command, ServerEventHandler *server, int minRequiredParams, const std::string& errorMessage) {
-	if (command.getParamCount() < minRequiredParams) {
-		sendError(sender,  ":" + server->getServerName() + " 461 " + sender->getNickname() + errorMessage);
-        return false;
-    }
-	return true;
-}
-
 void Whois::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
 	(void)channels;
 	(void)auth;
 
-	if (isParamCountValid(sender, command, server, 2, " :No nickname given") == false) {
+	if (isParamCountValid(sender, command, server, 2, "461", " :No nickname given") == false) {
 		return;
 	}
 

@@ -6,14 +6,6 @@ Join::Join() {
 Join::~Join() {
 }
 
-bool Join::isParamCountValid(Client* sender, const Message& command, ServerEventHandler *server, int minRequiredParams, const std::string& errorMessage) {
-	if (command.getParamCount() < minRequiredParams) {
-		sendError(sender,  ":" + server->getServerName() + " 461 " + sender->getNickname() + errorMessage);
-        return false;
-    }
-	return true;
-}
-
 bool Join::verifyChannelSyntax(Client* sender, ServerEventHandler *server, const std::string& channelName, const std::string& errorMessage) {
     if (channelName[0] != '#') {
 		sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + errorMessage);
@@ -62,7 +54,7 @@ void Join::execute(Client* sender, const Message& command,
                   Auth &auth, ServerEventHandler *server) {
     (void)clients;
 
-    if (isParamCountValid(sender, command, server, 1, " JOIN :Not enough parameters\r\n") == false) {
+    if (isParamCountValid(sender, command, server, 1, "461", " JOIN :Not enough parameters\r\n") == false) {
 		return ;
 	}
 

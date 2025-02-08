@@ -8,7 +8,6 @@ class Join : public CommandHandler {
 		Join();
 		~Join();
 		// 그냥 상속으로 빼도 될 것 같은 함수들
-		bool isParamCountValid(Client* sender, const Message& command, ServerEventHandler *server, int minRequiredParams, const std::string& errorMessage);
 		bool verifyChannelSyntax(Client* sender, ServerEventHandler *server, const std::string& channelName, const std::string& errorMessage);
 
 		// 이 명령어에만 사용이 가능한 함수들
