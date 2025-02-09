@@ -57,8 +57,13 @@ void Kick::execute(Client* sender, const Message& command, std::map<int, Client*
 		sender->setOutBuffer(response);
 		return;
 	}
+
+	Client *targetClient = clients[target->getSocketFd()];
+	if (channel->isWhiteList(targetClient)) {
+		channel->removeWhiteList(targetClient);
+	}
 	
 	std::string response = ":" + sender->getNickname() + " KICK " + channelName + " " + targetNickname + " :Kicked by " + sender->getNickname() + "\r\n";
-	channel->broadcast(response, sender);
+	channel->broadcast(response, sender, "KICK");
 	channel->removeMember(target);
 }

@@ -53,7 +53,7 @@ void Nick::broadcastToChannels(const std::string& message, Client* sender, std::
 	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
 		Channel* channel = it->second;
 		if (channel->searchMember(sender->getNickname()) != NULL) {
-			channel->broadcast(message, sender);
+			channel->broadcast(message, sender, "NICK");
 		}
 	}
 }

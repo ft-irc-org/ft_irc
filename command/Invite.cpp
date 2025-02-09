@@ -73,19 +73,12 @@ void Invite::execute(Client* sender, const Message& command, std::map<int, Clien
        sender->setOutBuffer(response);
        return;
    }
-    /*
-    * invite 명단을 channel class에 추가하던지 해야할듯?
-    * Channel 클래스에 추가
-    * void addInvitedUser(const std::string& nickname);
-    * bool isInvited(const std::string& nickname) const;
-
-    * INVITE 명령어에서 추가
-    * channel->addInvitedUser(nickname);
-    */
 
    std::string response = ":" + server->getServerName() + " 341 " + sender->getNickname() + 
                         " " + nickname + " " + channelName + "\r\n";
    sender->setOutBuffer(response);
    response = ":" + sender->getNickname() + " INVITE " + nickname + " " + channelName + "\r\n";
    target->setOutBuffer(response);
+
+    channel->addWhiteList(target);
 }

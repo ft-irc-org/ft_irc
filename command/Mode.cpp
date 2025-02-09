@@ -91,14 +91,16 @@ void Mode::execute(Client* sender, const Message& command, std::map<int, Client*
     }
     std::string response = ":" + server->getServerName() + " 324 " + sender->getNickname() + " " + channelName + " " + channel->getModeString() + "\r\n";
     sender->setOutBuffer(response);
-    channel->broadcast(response, sender);
+    channel->broadcast(response, sender, "MODE");
 }
 
 void Mode::modifyInviteOnlyMode(Channel* channel, MODEOPERATION operation){
     if (operation == MODE_ADD) {
         channel->setChannelMode(Channel::INVITE_ONLY);
+        channel->addCurrentUsersToWhiteList();
     } else {
         channel->unsetChannelMode(Channel::INVITE_ONLY);
+        channel->removeAllUsersInWhiteList();
     }
 }
 

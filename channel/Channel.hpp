@@ -47,13 +47,19 @@ class Channel {
 		void addMember(Client *client);
 		void removeMember(Client *client);
 		Client* searchMember(const std::string targeName) const;
-		void broadcast(const std::string& message, Client* sender);
+		void broadcast(const std::string& message, Client* sender, const std::string& command);
 
 		void setChannelMode(unsigned int channelMode);
 		void unsetChannelMode(unsigned int requestMode);
 		void setServerName(const std::string& serverName);
 		std::string getModeString() const;
 
+
+		void addWhiteList(Client *client);
+		void removeWhiteList(Client *client);
+		void addCurrentUsersToWhiteList();
+		void removeAllUsersInWhiteList();
+		bool isWhiteList(Client *client) const;
 
 	private:
 		static int nextFd;
@@ -69,6 +75,7 @@ class Channel {
 		std::string serverName;
 
 		std::map<int, Client *> users;
+		std::map<int, Client *> whiteList;
 };
 
 #endif

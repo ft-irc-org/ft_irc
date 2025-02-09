@@ -38,7 +38,7 @@ void Privmsg::execute(Client* sender, const Message& command, std::map<int, Clie
 		// }
 
 		std::string response = message + "\r\n";
-		channel->broadcast(response, sender);
+		channel->broadcast(response, sender, "PRIVMSG");
 	} else {
 		for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 			if (it->first == sender->getSocketFd()) {

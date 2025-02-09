@@ -45,16 +45,11 @@ void Join::execute(Client* sender, const Message& command,
     } else {
         channel = it->second;
 
-        // invite-only 모드 체크
-        if (channel->getChannelMode() & Channel::INVITE_ONLY) {
-            if (!auth.hasPermission(sender->getNickname(), channelName, Auth::OP)) {
-                std::string response = ":" + server->getServerName() + " 473 " + sender->getNickname() + 
-                                     " " + channelName + " :Cannot join channel (+i)\r\n";
-                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
-                sender->setOutBuffer(response);
-                return;
-            }
+        // 이미 채널에 참가 중인 경우
+        if (channel->isMember(sender)) {
+            return;
         }
+
 
         // 비밀번호 체크
         if (!channel->getPassword().empty()) {
@@ -77,12 +72,22 @@ void Join::execute(Client* sender, const Message& command,
                 return;
             }
         }
+
+        if (channel->getChannelMode() & Channel::INVITE_ONLY) {
+            if (!channel->isWhiteList(sender)) {
+                std::string response = ":" + server->getServerName() + " 473 " + sender->getNickname() + 
+                                     " " + channelName + " :Cannot join channel (+i)\r\n";
+                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+                sender->setOutBuffer(response);
+                return;
+            }
+        }
     }
     
     // 채널 참가
     channel->addMember(sender);
     std::string response = sender->getNickname() + " has joined ";
-    channel->broadcast(response, sender);
+    channel->broadcast(response, sender, "JOIN");
 	// 기존 권한이 없을 때만 NONE 권한 추가
     if (auth.isNoob(sender->getNickname())) {
         auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);

@@ -44,7 +44,7 @@ void Part::execute(Client* sender, const Message& command, std::map<int, Client*
     // 파트하는 클라이언트에게 먼저 PART 메시지 전송
     sender->setOutBuffer(partMessage);
 
-	channel->broadcast(partMessage, sender);
+	channel->broadcast(partMessage, sender, "PART");
 
 	// 채널에서 유저 제거 (이 시점에서 실제로 제거)
     channel->removeMember(sender);

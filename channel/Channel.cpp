@@ -76,7 +76,7 @@ Client* Channel::searchMember(const std::string targeName) const {
 	return NULL;
 }
 
-void Channel::broadcast(const std::string& message, Client* sender) {
+void Channel::broadcast(const std::string& message, Client* sender, const std::string& command) {
 	if (!isMember(sender)) {
 		std::string err = ":" + serverName + " 442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n";
 		sender->setOutBuffer(err);
@@ -84,14 +84,14 @@ void Channel::broadcast(const std::string& message, Client* sender) {
 	}
 	if (sender == nullptr) {
 		for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
-			std::string response = ":" + sender->getNickname() + " PRIVMSG " + channelName + " :" + message + "\r\n";
+			std::string response = ":" + sender->getNickname() + " " + command + " " + channelName + " :" + message + "\r\n";
 			it->second->setOutBuffer(response);
 		}
 		return;
 	}
 	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
 		if (it->first != sender->getSocketFd()) {
-			std::string response = ":" + sender->getNickname() + " PRIVMSG " + channelName + " :" + message + "\r\n";
+			std::string response = ":" + sender->getNickname() + " " + command + " " + channelName + " :" + message + "\r\n";
 			it->second->setOutBuffer(response);
 		}
 	}
@@ -115,6 +115,28 @@ std::string Channel::getModeString() const {
 		mode += "l";
 	}
 	return mode;
+}
+
+void Channel::addWhiteList(Client *client) {
+	whiteList[client->getSocketFd()] = client;
+}
+
+void Channel::removeWhiteList(Client *client) {
+	whiteList.erase(client->getSocketFd());
+}
+
+void Channel::removeAllUsersInWhiteList() {
+	whiteList.clear();
+}
+
+void Channel::addCurrentUsersToWhiteList() {
+	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
+		whiteList[it->first] = it->second;
+	}
+}
+
+bool Channel::isWhiteList(Client *client) const {
+	return whiteList.find(client->getSocketFd()) != whiteList.end();
 }
 
 bool Channel::hasMode(unsigned int requestMode) const {

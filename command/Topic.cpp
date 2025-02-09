@@ -86,17 +86,12 @@ void Topic::execute(Client* sender, const Message& command,
     std::string topicMsg = ":" + server->getServerName() + " 332 " + 
                             sender->getNickname() + " " + channelName + 
                             " :" + channel->getTopic() + "\r\n";
-    const std::map<int, Client*>& users = channel->getUsers();
-    for (std::map<int, Client*>::const_iterator it = users.begin(); it != users.end(); ++it) {
-		it->second->setOutBuffer(topicMsg);
-	}
+    channel->broadcast(topicMsg, sender, "TOPIC");
 
     // 토픽 설정자와 시간 정보 전송
     std::string whoTimeMsg = ":" + server->getServerName() + " 333 " + 
                             sender->getNickname() + " " + channelName + " " +
                             channel->getTopicSetter() + " " + 
                             std::to_string(channel->getTopicTime()) + "\r\n";
-    for (std::map<int, Client*>::const_iterator it = users.begin(); it != users.end(); ++it) {
-		it->second->setOutBuffer(whoTimeMsg);
-	}
+    channel->broadcast(whoTimeMsg, sender, "TOPIC");
 }
