@@ -12,7 +12,7 @@ class Auth {
 	public:
 		typedef enum Permission {
 			NONE = 0,
-			OP = 1 << 0,		       // 채널 운영자 (MODE +o)
+			OP = 1 << 0       // 채널 운영자 (MODE +o)
 		} Permission;
 
 		Auth();
