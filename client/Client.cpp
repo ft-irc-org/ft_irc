@@ -9,6 +9,10 @@ Client::Client(int socketFd, const std::string& ip, int port) : socketFd(socketF
 Client::~Client() {
 }
 
+void Client::updateLastPingTime() { lastPingTime = time(NULL); }
+time_t Client::getLastPingTime() const { return lastPingTime; }
+void Client::setAwaitingPong(bool value) { awaitingPong = value; }
+bool Client::isAwaitingPong() const { return awaitingPong; }
 // getter
 int Client::getSocketFd() const { return socketFd; }
 const std::string& Client::getIp() const { return ip; }

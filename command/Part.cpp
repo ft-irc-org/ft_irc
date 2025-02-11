@@ -9,52 +9,62 @@ Part::~Part() {
 void Part::execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server) {
     (void) clients;
     (void) server;
-    (void) auth; // 나갈 때 권한 위임하거나 해제하는 것은 없음
+    (void) auth;
 
     if (command.getParamCount() < 1) {
         sendError(sender, ":" + server->getServerName() + " 461 " + sender->getNickname() + " PART :Not enough parameters\r\n");
         return;
     }
 
-    std::string channelName = command.getParam(0);
-    std::string nickname = sender->getNickname();
-
-    if (channelName[0] != '#') {
-        sendError(sender, ":" + server->getServerName() + " 403 " + nickname + " " + channelName + " :No such channel\r\n");
-        return;
+    std::string channelsParam = command.getParam(0);
+    std::string reason;
+    if (command.getParamCount() > 1) {
+        reason = command.getParam(1);
     }
 
-    std::map<std::string, Channel*>::iterator it = channels.find(channelName);
-    if (it == channels.end()) {
-        sendError(sender, ":" + server->getServerName() + " 403 " + nickname + " " + channelName + " :No such channel\r\n");
-        return;
-    }
+    size_t start = 0;
+    size_t end = 0;
+    while ((end = channelsParam.find(',', start)) != std::string::npos || start < channelsParam.length()) {
+        std::string channelName;
+        if (end != std::string::npos) {
+            channelName = channelsParam.substr(start, end - start);
+            start = end + 1;
+        } else {
+            channelName = channelsParam.substr(start);
+            start = channelsParam.length();
+        }
 
-    Channel* channel = it->second;
-    
-    if (!channel->isMember(sender)) {
-        sendError(sender, ":" + server->getServerName() + " 442 " + nickname + " " + channelName + " :You're not on that channel\r\n");
-        return;
-    }
+        if (channelName[0] != '#') {
+            sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n");
+            continue;
+        }
 
-	// 3. 전체 포맷 재구성
-	std::string source = nickname + "!" + sender->getNickname() + "@" + server->getServerName() + "";
-    std::string partMessage = ":" + source + " PART :" + channelName + "\r\n";  
-    
-    // 파트하는 클라이언트에게 먼저 PART 메시지 전송
-    sender->setOutBuffer(partMessage);
+        std::map<std::string, Channel*>::iterator it = channels.find(channelName);
+        if (it == channels.end()) {
+            sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n");
+            continue;
+        }
 
-	channel->broadcast(partMessage, sender, "PART");
+        Channel* channel = it->second;
+        if (!channel->isMember(sender)) {
+            sendError(sender, ":" + server->getServerName() + " 442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n");
+            continue;
+        }
 
-	// 채널에서 유저 제거 (이 시점에서 실제로 제거)
-    channel->removeMember(sender);
+        std::string source = sender->getNickname() + "!" + sender->getRealname() + "@" + server->getServerName();
+        std::string partMessage = ":" + source + " PART " + channelName;
+        if (!reason.empty()) {
+            partMessage += " :" + reason;
+        }
+        partMessage += "\r\n";
 
-    // channel->broadcast(partMessage, sender);
+        sender->setOutBuffer(partMessage);
+        channel->broadcast(partMessage, sender, "PART");
+        channel->removeMember(sender);
 
-    // 채널이 비었으면 삭제
-    if (channel->getUserCount() == 0) {
-        channels.erase(channelName);
-        delete channel;
-        return;  // 채널이 삭제되었으므로 여기서 종료
+        if (channel->getUserCount() == 0) {
+            channels.erase(channelName);
+            delete channel;
+        }
     }
 }

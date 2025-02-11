@@ -37,6 +37,10 @@ class Client {
 
 		void setCurrentChannel(const std::string& channel);
 		void removeCurrentChannel();
+		void updateLastPingTime();
+    	time_t getLastPingTime() const;
+    	void setAwaitingPong(bool value);
+    	bool isAwaitingPong() const;
 
 
 	private:
@@ -54,6 +58,8 @@ class Client {
 		std::string buffer;
 		std::string outBuffer;
 
+		time_t lastPingTime;
+    	bool awaitingPong;
 };
 
 #endif

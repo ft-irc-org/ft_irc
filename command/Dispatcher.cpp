@@ -15,6 +15,7 @@ Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, 
 	registerHandler("PART", new Part());
 	registerHandler("TOPIC", new Topic());
 	registerHandler("INVITE", new Invite());
+	registerHandler("NOTICE", new Notice());
 }
 
 Dispatcher::~Dispatcher() {

@@ -24,6 +24,7 @@ SRCS = main.cpp \
         ./command/Part.cpp \
         ./command/Topic.cpp \
         ./command/Invite.cpp \
+        ./command/Notice.cpp \
 
 OBJS = $(SRCS:.cpp=.o)
 
