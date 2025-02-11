@@ -18,8 +18,6 @@ void Mode::execute(Client* sender, const Message& command, std::map<int, Client*
 
     std::string channelName = command.getParam(0);
     if (channelName[0] != '#') {
-        // std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n";
-        // sender->setOutBuffer(response);
         return;
     }
 

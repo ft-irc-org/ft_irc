@@ -15,33 +15,37 @@ void Notice::execute(Client* sender, const Message& command,
 	(void)server;
 
 	if (command.getParamCount() < 2) {
-		std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + 
-							 " NOTICE :Not enough parameters\r\n";
-		sender->setOutBuffer(response);
-		return;
-	}
+        return;
+    }
 
-	std::string target = command.getParam(0);
-	std::string message = command.getParam(1);
+    std::string target = command.getParam(0);
+    std::string message = command.getParam(1);
+    std::string notice = ":" + sender->getNickname() + " NOTICE " + target + " :" + message + "\r\n";
 
-	if (target[0] == '#') {
-		std::string response = ":" + server->getServerName() + " 401 " + sender->getNickname() + 
-							 " " + target + " :No such nick/channel\r\n";
-		sender->setOutBuffer(response);
-		return;
-	}
+    // 채널 메시지 처리
+    if (target[0] == '#') {
+        std::map<std::string, Channel*>::iterator chanIt = channels.find(target);
+        if (chanIt != channels.end()) {
+            Channel* channel = chanIt->second;
+            
+            // 발신자가 채널 멤버인지 확인
+            if (!channel->isMember(sender)) {
+				std::string response = ":" + server->getServerName() + " 442 " + sender->getNickname() + " " + target + " :You're not on that channel\r\n";
+                return;  // 멤버가 아니면 메시지를 보낼 수 없음
+            }
 
-	std::map<int, Client*>::iterator it = clients.begin();
-	while (it != clients.end()) {
-		if (it->second->getNickname() == target) {
-			std::string response = ":" + sender->getNickname() + " NOTICE " + target + " :" + message + "\r\n";
-			it->second->setOutBuffer(response);
-			return;
-		}
-		it++;
-	}
+            // 채널의 모든 멤버에게 메시지 전송 (sender 제외)
+            channel->broadcast(message, sender, "NOTICE");
+        }
+        return;
+    }
 
-	std::string response = ":" + server->getServerName() + " 401 " + sender->getNickname() + 
-						 " " + target + " :No such nick/channel\r\n";
-	sender->setOutBuffer(response);
+    // 개인 메시지 처리
+    for (std::map<int, Client*>::iterator it = clients.begin(); 
+         it != clients.end(); ++it) {
+        if (it->second->getNickname() == target) {
+            it->second->setOutBuffer(notice);
+            return;
+        }
+    }
 }

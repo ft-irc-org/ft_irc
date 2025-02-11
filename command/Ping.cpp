@@ -22,3 +22,5 @@ void Ping::execute(Client* sender, const Message& command, std::map<int, Client*
     std::string response = ":" + server->getServerName() + " PONG " + server->getServerName() + " :" + token + "\r\n";
     sender->setOutBuffer(response);
 }
+
+//ping, pong <- server

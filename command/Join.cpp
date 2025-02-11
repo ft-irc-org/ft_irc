@@ -16,7 +16,6 @@ void Join::execute(Client* sender, const Message& command,
     if (command.getParamCount() < 1) {
         std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + 
                              " JOIN :Not enough parameters\r\n";
-        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
         sender->setOutBuffer(response);
         return;
     }
@@ -25,9 +24,8 @@ void Join::execute(Client* sender, const Message& command,
     std::string password = command.getParamCount() > 1 ? command.getParam(1) : "";
 
     if (channelName[0] != '#') {
-        std::string response = ":" + server->getServerName() + " 403 " + sender->getNickname() + 
-                             " " + channelName + " :Wrong format : Wrong channel name\r\n";
-        // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
+        std::string response = ":" + server->getServerName() + " 476 " + sender->getNickname() + 
+                             " " + channelName + " :Bad Channel Mask\r\n";
         sender->setOutBuffer(response);
         return;
     }
@@ -56,7 +54,6 @@ void Join::execute(Client* sender, const Message& command,
             if (password != channel->getPassword()) {
                 std::string response = ":" + server->getServerName() + " 475 " + sender->getNickname() + 
                                      " " + channelName + " :Cannot join channel (+k)\r\n";
-                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
                 sender->setOutBuffer(response);
                 return;
             }
@@ -67,7 +64,6 @@ void Join::execute(Client* sender, const Message& command,
             if (channel->getUserCount() >= channel->getUserLimit()) {
                 std::string response = ":" + server->getServerName() + " 471 " + sender->getNickname() + 
                                      " " + channelName + " :Cannot join channel (+l)\r\n";
-                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
                 sender->setOutBuffer(response);
                 return;
             }
@@ -77,7 +73,6 @@ void Join::execute(Client* sender, const Message& command,
             if (!channel->isWhiteList(sender)) {
                 std::string response = ":" + server->getServerName() + " 473 " + sender->getNickname() + 
                                      " " + channelName + " :Cannot join channel (+i)\r\n";
-                // send(sender->getSocketFd(), response.c_str(), response.size(), 0);
                 sender->setOutBuffer(response);
                 return;
             }
@@ -95,13 +90,7 @@ void Join::execute(Client* sender, const Message& command,
     sender->setCurrentChannel(channelName);
 
     // Topic 정보 전송
-    if (channel->getTopic().empty()) {
-        // topic이 없을 때 RPL_NOTOPIC (331) 전송
-        response = ":" + server->getServerName() + " 331 " + 
-                sender->getNickname() + " " + channelName + 
-                " :No topic is set\r\n";
-        sender->setOutBuffer(response);
-    } else {
+    if (!channel->getTopic().empty()) {
         // topic이 있을 때 RPL_TOPIC (332) 전송
         response = ":" + server->getServerName() + " 332 " + 
                 sender->getNickname() + " " + channelName + 
