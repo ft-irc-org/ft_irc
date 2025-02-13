@@ -76,22 +76,24 @@ Client* Channel::searchMember(const std::string targeName) const {
 	return NULL;
 }
 
-void Channel::broadcast(const std::string& message, Client* sender, const std::string& command) {
+void Channel::broadcast(const std::string& message, Client* sender, const std::string& command, ServerEventHandler *server) {
 	if (!isMember(sender)) {
 		std::string err = ":" + serverName + " 442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n";
 		sender->setOutBuffer(err);
 		return;
 	}
-	if (sender == nullptr) {
-		for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
-			std::string response = ":" + sender->getNickname() + " " + command + " " + channelName + " :" + message + "\r\n";
-			it->second->setOutBuffer(response);
-		}
-		return;
-	}
+	// if (sender == nullptr) {
+	// 	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
+	// 		std::string response = ":" + sender->getNickname() + " " + command + " " + channelName + " :" + message + "\r\n";
+	// 		it->second->setOutBuffer(response);
+	// 	}
+	// 	return;
+	// }
+	// exit? quit? 전파 왜?
 	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
 		if (it->first != sender->getSocketFd()) {
 			std::string response = ":" + sender->getNickname() + " " + command + " " + channelName + " :" + message + "\r\n";
+			server->addWriteEvent(it->first);
 			it->second->setOutBuffer(response);
 		}
 	}

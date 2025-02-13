@@ -17,16 +17,16 @@ void Pass::execute(Client* sender, const Message& command, std::map<int, Client*
 	}
 
 	if (sender->isPassAuthenticated()) {
-		// std::cout << "sender->isPassAuthenticated()" << std::endl;
-		// sender->setOutBuffer(":" + server->getServerName() + " 462 " + sender->getNickname() + " :You may not reregister\r\n");
+		std::cout << "sender->isPassAuthenticated()" << std::endl;
+		sender->setOutBuffer(":" + server->getServerName() + " 462 " + sender->getNickname() + "PASS :ALREADYREGISTERED\r\n");
 		return;
 	}
 
 	std::string password = command.getParam(0);
 
 	if (password != auth.getPassword()) {
-		sender->setOutBuffer(":" + server->getServerName() + " 464 " + sender->getNickname() + " :Password incorrect\r\n");
-		disconnectClient(sender, server, clients);
+		sender->setOutBuffer(":" + server->getServerName() + " 464 " + sender->getNickname() + "PASS :Password incorrect\r\n");
+		// disconnectClient(sender, server, clients);
 		return;
 	}
 

@@ -35,7 +35,7 @@ void Notice::execute(Client* sender, const Message& command,
             }
 
             // 채널의 모든 멤버에게 메시지 전송 (sender 제외)
-            channel->broadcast(message, sender, "NOTICE");
+            channel->broadcast(message, sender, "NOTICE", server);
         }
         return;
     }

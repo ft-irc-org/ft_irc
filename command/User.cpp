@@ -17,6 +17,11 @@ void User::execute(Client* sender, const Message& command, std::map<int, Client*
         return;
     }
 
+    if (!sender->isPassAuthenticated()) {
+        sender->setOutBuffer("451 " + sender->getNickname() + " :You must enter PASS first\r\n");
+        return;
+    }
+
     if (sender->isUserAuthenticated()) {
         // sender->setOutBuffer("462 " + sender->getNickname() + " :You may not reregister\r\n");
         return;

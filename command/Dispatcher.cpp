@@ -34,9 +34,6 @@ void Dispatcher::dispatch(Client* client, const Message& command) {
 		// send(client->getSocketFd(), response.c_str(), response.size(), 0);
 		server->addWriteEvent(client->getSocketFd());
 		client->setOutBuffer(response);
-		if (client->getOutBuffer().size() > 0) {
-			server->addWriteEvent(client->getSocketFd());
-		}
 		return;
 	}
 
@@ -46,16 +43,10 @@ void Dispatcher::dispatch(Client* client, const Message& command) {
 		std::cout << "Sender: " << client->getNickname() << std::endl;
 		std::cout << "Command: " << command.getVerb() << std::endl;
 		it->second->execute(client, command, clients, channels, auth, server);
-		if (client->getOutBuffer().size() > 0) {
-			server->addWriteEvent(client->getSocketFd());
-		}
 	} else {
 		std::string response = ":" + server->getServerName() + " 421 " + client->getNickname() + " :Unknown command\r\n";
 		// send(client->getSocketFd(), response.c_str(), response.size(), 0);
 		server->addWriteEvent(client->getSocketFd());
 		client->setOutBuffer(response);
-		if (client->getOutBuffer().size() > 0) {
-			server->addWriteEvent(client->getSocketFd());
-		}
 	}
 }

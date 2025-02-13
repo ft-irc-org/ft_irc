@@ -13,6 +13,11 @@ void Nick::execute(Client* sender, const Message& command, std::map<int, Client*
         sender->setOutBuffer("461 " + sender->getNickname() + " NICK :Not enough parameters\r\n");
     }
 
+    if (!sender->isPassAuthenticated()) {
+        sender->setOutBuffer("451 " + sender->getNickname() + " :You must enter PASS first\r\n");
+        return;
+    }
+
 	std::string newNickname = command.getParam(0);
 
 	// ignore if the new nickname is the same as the old one
@@ -47,15 +52,15 @@ void Nick::execute(Client* sender, const Message& command, std::map<int, Client*
             }
         }
         std::string response = ":" + oldNickname + " NICK " + newNickname + "\r\n";
-        broadcastToChannels(response, sender, channels);
+        broadcastToChannels(response, sender, channels, server);
     }
 }
 
-void Nick::broadcastToChannels(const std::string& message, Client* sender, std::map<std::string, Channel*>& channels) {
+void Nick::broadcastToChannels(const std::string& message, Client* sender, std::map<std::string, Channel*>& channels, ServerEventHandler *server) {
 	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
 		Channel* channel = it->second;
 		if (channel->searchMember(sender->getNickname()) != NULL) {
-			channel->broadcast(message, sender, "NICK");
+			channel->broadcast(message, sender, "NICK", server);
 		}
 	}
 }

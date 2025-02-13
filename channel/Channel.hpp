@@ -6,6 +6,7 @@
 # include <exception>
 # include <map>
 # include "../client/Client.hpp"
+# include "../server/ServerEventHandler.hpp"
 # include "../client/Auth.hpp"
 
 class Channel {
@@ -47,7 +48,7 @@ class Channel {
 		void addMember(Client *client);
 		void removeMember(Client *client);
 		Client* searchMember(const std::string targeName) const;
-		void broadcast(const std::string& message, Client* sender, const std::string& command);
+		void broadcast(const std::string& message, Client* sender, const std::string& command, ServerEventHandler *server);
 
 		void setChannelMode(unsigned int channelMode);
 		void unsetChannelMode(unsigned int requestMode);

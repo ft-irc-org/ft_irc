@@ -58,6 +58,6 @@ void Kick::execute(Client* sender, const Message& command, std::map<int, Client*
 	}
 	
 	std::string response = ":" + sender->getNickname() + " KICK " + channelName + " " + targetNickname + " :Kicked by " + sender->getNickname() + "\r\n";
-	channel->broadcast(response, sender, "KICK");
+	channel->broadcast(response, sender, "KICK", server);
 	channel->removeMember(target);
 }

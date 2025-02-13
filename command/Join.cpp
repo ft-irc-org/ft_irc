@@ -40,6 +40,7 @@ void Join::execute(Client* sender, const Message& command,
         auth.grantOperator(sender->getNickname(), channelName); // 첫 유저는 operator
         auth.grantPermission(sender->getNickname(), channelName, Auth::OP);
         channel->setServerName(server->getServerName());
+        
     } else {
         channel = it->second;
 
@@ -82,7 +83,7 @@ void Join::execute(Client* sender, const Message& command,
     // 채널 참가
     channel->addMember(sender);
     std::string response = sender->getNickname() + " has joined ";
-    channel->broadcast(response, sender, "JOIN");
+    channel->broadcast(response, sender, "JOIN", server);
 	// 기존 권한이 없을 때만 NONE 권한 추가
     if (auth.isNoob(sender->getNickname())) {
         auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
@@ -103,5 +104,12 @@ void Join::execute(Client* sender, const Message& command,
                                 channel->getTopicSetter() + " " + 
                                 std::to_string(channel->getTopicTime()) + "\r\n";
         sender->setOutBuffer(whoTimeMsg);
+    }
+    else {
+        // topic이 없을 때 RPL_NOTOPIC (331) 전송
+        response = ":" + server->getServerName() + " 331 " + 
+                sender->getNickname() + " " + channelName + 
+                " :No topic is set\r\n";
+        sender->setOutBuffer(response);
     }
 }

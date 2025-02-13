@@ -8,7 +8,7 @@ class Nick : public CommandHandler {
 		Nick();
 		~Nick();
 		void execute(Client* sender, const Message& command, std::map<int, Client*> &clients, std::map<std::string, Channel*>& channels, Auth &auth, ServerEventHandler *server);
-		void broadcastToChannels(const std::string& message, Client* sender, std::map<std::string, Channel*>& channels);
+		void broadcastToChannels(const std::string& message, Client* sender, std::map<std::string, Channel*>& channels, ServerEventHandler *server);
 		bool isValidNickname(const std::string& nickname) const;
 };
 

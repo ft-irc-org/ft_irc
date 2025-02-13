@@ -226,11 +226,11 @@ void Server::handleClientWrite(int clientSocketFd) {
     ssize_t sent = send(clientSocketFd, client->getOutBuffer().c_str(), 
                        client->getOutBuffer().length(), 0);
     if (sent < 0) {
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            delete clients[clientSocketFd];
-            clients.erase(clientSocketFd);
-            close(clientSocketFd);
-        }
+        // if (errno != EAGAIN && errno != EWOULDBLOCK) {
+        //     delete clients[clientSocketFd];
+        //     clients.erase(clientSocketFd);
+        //     close(clientSocketFd);
+        // }
         return;
     }
     if (sent > 0) {
