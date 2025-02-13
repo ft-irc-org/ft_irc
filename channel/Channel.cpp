@@ -76,7 +76,7 @@ Client* Channel::searchMember(const std::string targeName) const {
 	return NULL;
 }
 
-void Channel::broadcast(const std::string& message, Client* sender, const std::string& command, ServerEventHandler *server) {
+void Channel::broadcast(const std::string& message, Client* sender, ServerEventHandler *server) {
 	if (!isMember(sender)) {
 		std::string err = ":" + serverName + " 442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n";
 		sender->setOutBuffer(err);
@@ -92,9 +92,8 @@ void Channel::broadcast(const std::string& message, Client* sender, const std::s
 	// exit? quit? 전파 왜?
 	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
 		if (it->first != sender->getSocketFd()) {
-			std::string response = ":" + sender->getNickname() + " " + command + " " + channelName + " :" + message + "\r\n";
 			server->addWriteEvent(it->first);
-			it->second->setOutBuffer(response);
+			it->second->setOutBuffer(message);
 		}
 	}
 }

@@ -7,6 +7,9 @@
 # include <exception>
 
 # include "../server/ServerConfig.hpp"
+# include "../channel/Channel.hpp"
+
+class Channel;
 
 class Auth {
 	public:
@@ -42,6 +45,7 @@ class Auth {
 		const std::string& getPassword() const;
 		bool isNoob(const std::string& userNickname) const;
 
+		std::vector <Channel *> getChannels(const std::string& userNickname) const;
 	private:
 		typedef struct AuthPK {
 			std::string userNickname;

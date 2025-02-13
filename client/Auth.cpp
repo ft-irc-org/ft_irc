@@ -59,6 +59,20 @@ void Auth::revokePermission(const std::string& userNickname, const std::string& 
 	}
 }
 
+std::vector <Channel *> Auth::getChannels(const std::string& userNickname) const {
+	std::vector <Channel *> channels;
+	std::map<AuthPK, unsigned int>::const_iterator it = authMap.begin();
+	while (it != authMap.end()) {
+		if (it->first.userNickname == userNickname) {
+			Channel *channel = new Channel();
+			channel->setChannelName(it->first.channelName);
+			channels.push_back(channel);
+		}
+		++it;
+	}
+	return channels;
+}
+
 void Auth::grantOperator(const std::string& userNickname, const std::string& channelName) {
 	AuthPK pk;
 	pk.userNickname = userNickname;

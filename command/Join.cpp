@@ -23,6 +23,21 @@ void Join::execute(Client* sender, const Message& command,
     std::string channelName = command.getParam(0);
     std::string password = command.getParamCount() > 1 ? command.getParam(1) : "";
 
+    if (channelName.length() == 1 && channelName[0] == '0') {
+        std::vector<Channel*> userChannels = auth.getChannels(sender->getNickname());
+        for (std::vector<Channel*>::iterator it = userChannels.begin(); it != userChannels.end(); ++it) {
+            Channel* channel = *it;
+            std::string response = ":" + sender->getNickname() + " PART " + channel->getChannelName() + "\r\n";
+            channel->broadcast(response, sender, server);
+            sender->setOutBuffer(response);
+            if (channel->isMember(sender))
+                channel->removeMember(sender);
+            if (channel->isWhiteList(sender))
+                channel->removeWhiteList(sender);
+        }
+        return;
+    }
+
     if (channelName[0] != '#') {
         std::string response = ":" + server->getServerName() + " 476 " + sender->getNickname() + 
                              " " + channelName + " :Bad Channel Mask\r\n";
@@ -82,8 +97,17 @@ void Join::execute(Client* sender, const Message& command,
     
     // 채널 참가
     channel->addMember(sender);
-    std::string response = sender->getNickname() + " has joined ";
-    channel->broadcast(response, sender, "JOIN", server);
+    //std::string response = ":" + sender->getNickname() + " " + command + " " + channelName + " :" + message + "\r\n";
+    // std::string response = ":" + sender->getNickname() + " JOIN " + channelName + "\r\n";
+
+    std::string response = ":" + sender->getNickname() + "!~" + 
+                      sender->getNickname() + "@" + 
+                      sender->getIp() + " JOIN " + 
+                      channelName + "\r\n";
+
+
+    channel->broadcast(response, sender, server);
+    sender->setOutBuffer(response);
 	// 기존 권한이 없을 때만 NONE 권한 추가
     if (auth.isNoob(sender->getNickname())) {
         auth.grantPermission(sender->getNickname(), channelName, Auth::NONE);
@@ -112,4 +136,24 @@ void Join::execute(Client* sender, const Message& command,
                 " :No topic is set\r\n";
         sender->setOutBuffer(response);
     }
+
+    // NAMEREPLY 전송
+    std::string nameReply = ":" + server->getServerName() + " 353 " + 
+                          sender->getNickname() + " = " + channelName + " :";
+    std::map<int, Client*> users = channel->getUsers();
+    for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
+        std::string prefix = "";
+        if (auth.isOperator(it->second->getNickname(), channelName)) {
+            prefix = "@";  // 채널 운영자
+        }
+        nameReply += prefix + it->second->getNickname() + " ";
+    }
+    nameReply += "\r\n";
+    sender->setOutBuffer(nameReply);
+
+    // END OF NAMEREPLY 전송
+    response = ":" + server->getServerName() + " 366 " + 
+            sender->getNickname() + " " + channelName + 
+            " :End of /NAMES list\r\n";
+    sender->setOutBuffer(response);
 }

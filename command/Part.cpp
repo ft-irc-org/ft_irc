@@ -59,7 +59,7 @@ void Part::execute(Client* sender, const Message& command, std::map<int, Client*
         partMessage += "\r\n";
 
         sender->setOutBuffer(partMessage);
-        channel->broadcast(partMessage, sender, "PART", server);
+        channel->broadcast(partMessage, sender, server);
         channel->removeMember(sender);
 
         if (channel->getUserCount() == 0) {

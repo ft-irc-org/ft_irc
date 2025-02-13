@@ -20,6 +20,7 @@ void Notice::execute(Client* sender, const Message& command,
 
     std::string target = command.getParam(0);
     std::string message = command.getParam(1);
+	
     std::string notice = ":" + sender->getNickname() + " NOTICE " + target + " :" + message + "\r\n";
 
     // 채널 메시지 처리
@@ -35,7 +36,7 @@ void Notice::execute(Client* sender, const Message& command,
             }
 
             // 채널의 모든 멤버에게 메시지 전송 (sender 제외)
-            channel->broadcast(message, sender, "NOTICE", server);
+            channel->broadcast(notice, sender, server);
         }
         return;
     }
