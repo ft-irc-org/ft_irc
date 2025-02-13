@@ -167,7 +167,9 @@ void Server::handleClientRead(int clientSocketFd) {
             std::string message = receivedData.substr(0, pos);
 			std::cout << "Received message from " << client->getIp() << ":" << client->getPort() << " : " << message << std::endl;
             Message msg(message);
-			std::string source = client->getIp() + ":" + std::to_string(client->getPort());
+			std::stringstream ss;
+			ss << client->getSocketFd();
+			std::string source = client->getIp() + ":" + ss.str();
 			msg.addSource(source); // source 추가
             dispatcher->dispatch(client, msg);
             receivedData = receivedData.substr(pos + 2);  // 처리된 메시지 제거

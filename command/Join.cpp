@@ -123,10 +123,12 @@ void Join::execute(Client* sender, const Message& command,
         sender->setOutBuffer(response);
         
         // RPL_TOPICWHOTIME (333) 전송
+        std::stringstream ss;
+        ss << channel->getTopicTime();
         std::string whoTimeMsg = ":" + server->getServerName() + " 333 " + 
                                 sender->getNickname() + " " + channelName + " " +
                                 channel->getTopicSetter() + " " + 
-                                std::to_string(channel->getTopicTime()) + "\r\n";
+                                ss.str() + "\r\n";
         sender->setOutBuffer(whoTimeMsg);
     }
     else {

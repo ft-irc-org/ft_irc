@@ -131,7 +131,10 @@ void Mode::modifyOperatorMode(Auth& auth, Channel* channel, MODEOPERATION operat
 void Mode::modifyLimitMode(Channel* channel, MODEOPERATION operation, const std::string& param){
     if (operation == MODE_ADD) {
         channel->setChannelMode(Channel::USER_LIMIT);
-        channel->setUserLimit(std::stold(param));
+        std::stringstream ss(param);
+        unsigned int userLimit;
+        ss >> userLimit;
+        channel->setUserLimit(userLimit);
     } else {
         channel->unsetChannelMode(Channel::USER_LIMIT);
         channel->setUserLimit(0);

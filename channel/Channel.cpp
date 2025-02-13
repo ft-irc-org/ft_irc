@@ -82,14 +82,6 @@ void Channel::broadcast(const std::string& message, Client* sender, ServerEventH
 		sender->setOutBuffer(err);
 		return;
 	}
-	// if (sender == nullptr) {
-	// 	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
-	// 		std::string response = ":" + sender->getNickname() + " " + command + " " + channelName + " :" + message + "\r\n";
-	// 		it->second->setOutBuffer(response);
-	// 	}
-	// 	return;
-	// }
-	// exit? quit? 전파 왜?
 	for (std::map<int, Client*>::iterator it = users.begin(); it != users.end(); ++it) {
 		if (it->first != sender->getSocketFd()) {
 			server->addWriteEvent(it->first);

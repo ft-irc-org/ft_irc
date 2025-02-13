@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <csignal>
+#include <sstream>
 
 // Signal handler to gracefully shut down the server
 void signalHandler(int signum) {
@@ -22,7 +23,10 @@ int main(int argc, char *argv[]) {
         }
 
         // Parse port number
-        int port = std::stold(argv[1]);
+        // int port = std::stold(argv[1]);
+        int port;
+        std::istringstream iss(argv[1]);
+        iss >> port;
         if (port <= 0 || port > 65535) {
             std::cerr << "Error: Invalid port number. Port must be between 1 and 65535." << std::endl;
             return 1;

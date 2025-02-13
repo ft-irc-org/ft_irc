@@ -54,10 +54,12 @@ void Topic::execute(Client* sender, const Message& command,
             sender->setOutBuffer(topicMsg);
 
             // 토픽 설정자와 시간 정보 전송
+            std::stringstream ss;
+            ss << channel->getTopicTime();
             std::string whoTimeMsg = ":" + server->getServerName() + " 333 " + 
                                    sender->getNickname() + " " + channelName + " " +
                                    channel->getTopicSetter() + " " + 
-                                   std::to_string(channel->getTopicTime()) + "\r\n";
+                                   ss.str() + "\r\n";
             sender->setOutBuffer(whoTimeMsg);
         }
         return;
@@ -90,10 +92,12 @@ void Topic::execute(Client* sender, const Message& command,
     sender->setOutBuffer(topicMsg);
 
     // 토픽 설정자와 시간 정보 전송
+    std::stringstream ss;
+    ss << channel->getTopicTime();
     std::string whoTimeMsg = ":" + server->getServerName() + " 333 " + 
                             sender->getNickname() + " " + channelName + " " +
                             channel->getTopicSetter() + " " + 
-                            std::to_string(channel->getTopicTime()) + "\r\n";
+                            ss.str() + "\r\n";
     channel->broadcast(whoTimeMsg, sender, server);
     sender->setOutBuffer(whoTimeMsg);
 }
