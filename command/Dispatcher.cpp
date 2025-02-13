@@ -19,6 +19,9 @@ Dispatcher::Dispatcher(std::map<std::string, Channel*>& channels, std::map<int, 
 }
 
 Dispatcher::~Dispatcher() {
+	for (std::map<std::string, CommandHandler*>::iterator it = handlers.begin(); it != handlers.end(); ++it) {
+		delete it->second;
+	}
 }
 
 void Dispatcher::registerHandler(const std::string& command, CommandHandler* handler) {
