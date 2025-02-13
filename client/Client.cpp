@@ -4,6 +4,8 @@ Client::Client() : socketFd(-1), authenticated(false), passAuthenticated(false) 
 }
 
 Client::Client(int socketFd, const std::string& ip, int port) : socketFd(socketFd), ip(ip), port(port), authenticated(false), passAuthenticated(false) {
+	awaitingPong = false;
+	lastPingTime = time(NULL);
 }
 
 Client::~Client() {
@@ -44,3 +46,7 @@ void Client::setCurrentChannel(const std::string& channel) {
 void Client::removeCurrentChannel() {
 	current_channel = "";
 }
+void Client::setLastPingTime(time_t time) {
+	lastPingTime = time;
+}
+

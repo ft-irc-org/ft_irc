@@ -12,20 +12,20 @@ void Pass::execute(Client* sender, const Message& command, std::map<int, Client*
 
 	if (command.getParamCount() < 1) {
 		// std::cout << "command.getParamCount() < 1" << std::endl;
-		sendError(sender, "461 " + sender->getNickname() + " PASS :Not enough parameters");
+		sender->setOutBuffer(":" + server->getServerName() + " 461 " + sender->getNickname() + " PASS :Not enough parameters\r\n");
 		return;
 	}
 
 	if (sender->isPassAuthenticated()) {
 		// std::cout << "sender->isPassAuthenticated()" << std::endl;
-		sendError(sender, "462 " + sender->getNickname() + " :You may not reregister");
+		// sender->setOutBuffer(":" + server->getServerName() + " 462 " + sender->getNickname() + " :You may not reregister\r\n");
 		return;
 	}
 
 	std::string password = command.getParam(0);
 
 	if (password != auth.getPassword()) {
-		sendError(sender, "464 " + sender->getNickname() + " :Password incorrect");
+		sender->setOutBuffer(":" + server->getServerName() + " 464 " + sender->getNickname() + " :Password incorrect\r\n");
 		disconnectClient(sender, server, clients);
 		return;
 	}

@@ -41,6 +41,7 @@ class Client {
     	time_t getLastPingTime() const;
     	void setAwaitingPong(bool value);
     	bool isAwaitingPong() const;
+		void setLastPingTime(time_t time);
 
 
 	private:

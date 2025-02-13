@@ -10,7 +10,7 @@ void Nick::execute(Client* sender, const Message& command, std::map<int, Client*
     (void) clients;
     (void) server;
     if (command.getParamCount() < 1) {
-        return sendError(sender, "431 :No nickname given");
+        sender->setOutBuffer("461 " + sender->getNickname() + " NICK :Not enough parameters\r\n");
     }
 
 	std::string newNickname = command.getParam(0);
@@ -23,12 +23,14 @@ void Nick::execute(Client* sender, const Message& command, std::map<int, Client*
     }
 
 	if (!isValidNickname(newNickname)) {
-        return sendError(sender, "432 " + newNickname + " :Erroneous nickname");
+        sender->setOutBuffer("432 " + newNickname + " :Erroneous nickname\r\n");
+        return;
     }
 
 	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
         if (it->second != sender && it->second->getNickname() == newNickname) {
-            return sendError(sender, "433 " + newNickname + " :Nickname is already in use");
+            sender->setOutBuffer("433 " + newNickname + " :Nickname is already in use\r\n");
+            return;
         }
     }
 

@@ -94,7 +94,39 @@ void Server::start() {
     			handleClientWrite(events[i].ident);
 			}
 		}
+		checkTimeout();
 	}
+}
+
+void Server::checkTimeout(){
+	std::map<int, Client*>::iterator it = clients.begin();
+    while (it != clients.end()) {
+        Client* client = it->second;
+        time_t currentTime = time(NULL);
+        
+        // 마지막 ping으로부터 60초가 지났으면
+        if (currentTime - client->getLastPingTime() > 60) {
+            if (client->isAwaitingPong()) {
+                // PONG 응답을 기다리고 있었는데 응답이 없으면 연결 종료
+                std::cout << "Client timeout (no PONG response): " << client->getNickname() << std::endl;
+                removeReadEvent(client->getSocketFd());
+                removeWriteEvent(client->getSocketFd());
+                close(client->getSocketFd());
+                delete client;
+                it = clients.erase(it);
+            } else {
+                // PING 메시지 전송
+                std::string ping = "PING " + serverName + "\r\n";
+                client->setOutBuffer(ping);
+                client->setAwaitingPong(true);
+                client->setLastPingTime(currentTime);
+                addWriteEvent(client->getSocketFd());
+                ++it;
+            }
+        } else {
+            ++it;
+        }
+    }
 }
 
 void Server::acceptClient(){
@@ -187,6 +219,7 @@ void Server::handleClientWrite(int clientSocketFd) {
     Client* client = clients[clientSocketFd];
 
     if (client->getOutBuffer().empty()) {
+		removeWriteEvent(clientSocketFd);
         return;
     }
     
@@ -202,5 +235,8 @@ void Server::handleClientWrite(int clientSocketFd) {
     }
     if (sent > 0) {
         client->getOutBuffer().erase(0, sent);
+		if (client->getOutBuffer().empty()) {
+			removeWriteEvent(clientSocketFd);
+		}
     }
 }

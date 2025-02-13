@@ -12,7 +12,7 @@ void Part::execute(Client* sender, const Message& command, std::map<int, Client*
     (void) auth;
 
     if (command.getParamCount() < 1) {
-        sendError(sender, ":" + server->getServerName() + " 461 " + sender->getNickname() + " PART :Not enough parameters\r\n");
+        sender->setOutBuffer("461 " + sender->getNickname() + " PART :Not enough parameters\r\n");
         return;
     }
 
@@ -35,19 +35,19 @@ void Part::execute(Client* sender, const Message& command, std::map<int, Client*
         }
 
         if (channelName[0] != '#') {
-            sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n");
+            sender->setOutBuffer("475 " + sender->getNickname() + " " + channelName + " :Cannot join channel (+k)\r\n");
             continue;
         }
 
         std::map<std::string, Channel*>::iterator it = channels.find(channelName);
         if (it == channels.end()) {
-            sendError(sender, ":" + server->getServerName() + " 403 " + sender->getNickname() + " " + channelName + " :No such channel\r\n");
+            sender->setOutBuffer("442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n");
             continue;
         }
 
         Channel* channel = it->second;
         if (!channel->isMember(sender)) {
-            sendError(sender, ":" + server->getServerName() + " 442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n");
+            sender->setOutBuffer("442 " + sender->getNickname() + " " + channelName + " :You're not on that channel\r\n");
             continue;
         }
 

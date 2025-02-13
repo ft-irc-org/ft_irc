@@ -13,12 +13,12 @@ void Pong::execute(Client* sender, const Message& command, std::map<int, Client*
     (void) server;
 
     if (command.getParamCount() < 1) {
-        std::string response = ":" + server->getServerName() + " 461 " + sender->getNickname() + " PONG :Not enough parameters\r\n";
-        sender->setOutBuffer(response);
-        return;
+        return;  // PONG은 에러 응답을 보내지 않음
     }
 
-    // PONG을 받으면 클라이언트의 상태 업데이트
+    // 클라이언트는 서버 파라미터를 보내면 안됨
+    std::string token = command.getParam(command.getParamCount() - 1);  // 마지막 파라미터가 token
+    
     sender->updateLastPingTime();
     sender->setAwaitingPong(false);
 }

@@ -53,6 +53,7 @@ class Server : public ServerEventHandler {
         void handleClientWrite(int clientFd);
 
         void addReadEvent(int clientFd);
+        void checkTimeout();
 
         int initSocket();
         int initKqueue();

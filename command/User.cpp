@@ -13,15 +13,23 @@ void User::execute(Client* sender, const Message& command, std::map<int, Client*
     (void)server;
 
 	if (command.getParamCount() < 4) {
-        return sendError(sender, "461 " + sender->getNickname() + " USER :Not enough parameters");
+        sender->setOutBuffer("461 " + sender->getNickname() + " USER :Not enough parameters\r\n");
+        return;
     }
 
     if (sender->isUserAuthenticated()) {
-        return sendError(sender, "462 " + sender->getNickname() + " :Already registered");
+        // sender->setOutBuffer("462 " + sender->getNickname() + " :You may not reregister\r\n");
+        return;
     }
     // std::cout << "nickname : " << sender->getNickname() << std::endl;
     std::string username = command.getParam(0);
+    username = "~" + username;
     std::string realname = command.getParam(3);
+
+    const size_t USERLEN = 12;
+    if (username.length() > USERLEN) {
+        username = username.substr(0, USERLEN);
+    }
 
     sender->setRealname(realname);
     sender->setUserAuthenticated(true);
