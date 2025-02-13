@@ -5,6 +5,7 @@
 # include <string>
 # include <map>
 # include <exception>
+# include <vector>
 
 # include "../server/ServerConfig.hpp"
 # include "../channel/Channel.hpp"

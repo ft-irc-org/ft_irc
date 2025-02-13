@@ -27,13 +27,11 @@ void User::execute(Client* sender, const Message& command, std::map<int, Client*
         return;
     }
     // std::cout << "nickname : " << sender->getNickname() << std::endl;
-    std::string username = command.getParam(0);
-    username = "~" + username;
-    std::string realname = command.getParam(3);
+    std::string realname = command.getParam(0);
 
     const size_t USERLEN = 12;
-    if (username.length() > USERLEN) {
-        username = username.substr(0, USERLEN);
+    if (realname.length() > USERLEN) {
+        realname = realname.substr(0, USERLEN);
     }
 
     sender->setRealname(realname);

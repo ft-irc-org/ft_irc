@@ -101,7 +101,7 @@ void Join::execute(Client* sender, const Message& command,
     // std::string response = ":" + sender->getNickname() + " JOIN " + channelName + "\r\n";
 
     std::string response = ":" + sender->getNickname() + "!~" + 
-                      sender->getNickname() + "@" + 
+                      sender->getRealname() + "@" + 
                       sender->getIp() + " JOIN " + 
                       channelName + "\r\n";
 
