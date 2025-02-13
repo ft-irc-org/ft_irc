@@ -57,7 +57,9 @@ void Kick::execute(Client* sender, const Message& command, std::map<int, Client*
 		channel->removeWhiteList(targetClient);
 	}
 	
-	std::string response = ":" + sender->getNickname() + " KICK " + channelName + " " + targetNickname + " :Kicked by " + sender->getNickname() + "\r\n";
+	std::string response = ":" + sender->getNickname() + "!~" + 
+                      sender->getRealname() + "@" + 
+                      sender->getIp() + " KICK " + channelName + " " + targetNickname + " :Kicked by " + sender->getNickname() + "\r\n";
 	channel->broadcast(response, sender, server);
 	channel->removeMember(target);
 }

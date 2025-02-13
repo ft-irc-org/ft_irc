@@ -27,7 +27,9 @@ void Join::execute(Client* sender, const Message& command,
         std::vector<Channel*> userChannels = auth.getChannels(sender->getNickname());
         for (std::vector<Channel*>::iterator it = userChannels.begin(); it != userChannels.end(); ++it) {
             Channel* channel = *it;
-            std::string response = ":" + sender->getNickname() + " PART " + channel->getChannelName() + "\r\n";
+            std::string response = ":" + sender->getNickname() + "!~" + 
+                      sender->getRealname() + "@" + 
+                      sender->getIp() + " PART " + channel->getChannelName() + "\r\n";
             channel->broadcast(response, sender, server);
             sender->setOutBuffer(response);
             if (channel->isMember(sender))

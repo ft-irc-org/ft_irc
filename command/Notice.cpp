@@ -21,7 +21,9 @@ void Notice::execute(Client* sender, const Message& command,
     std::string target = command.getParam(0);
     std::string message = command.getParam(1);
 	
-    std::string notice = ":" + sender->getNickname() + " NOTICE " + target + " :" + message + "\r\n";
+    std::string notice = ":" + sender->getNickname() + "!~" + 
+                      sender->getRealname() + "@" + 
+                      sender->getIp() + " NOTICE " + target + " :" + message + "\r\n";
 
     // 채널 메시지 처리
     if (target[0] == '#') {
